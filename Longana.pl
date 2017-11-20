@@ -1,4 +1,7 @@
-/**
- * First commit on Longana in Prolog
- * /
- 
+%************************************************************
+%* Name:               Ivaylo Nenovski                      *
+%* Project:            Longana Prolog                       *
+%* Class:              CMPS 366-01                          *
+%* Date:               12/08/2017                           *
+%************************************************************
+
