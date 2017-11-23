@@ -70,17 +70,51 @@ generateStock(Pip1, Pip2, Stock, RetVal) :-
 %Return Value:
 %    RetVal - the shuffled stock
 %Local Variables:
-%Algorithm: 
+%Algorithm: Recursively iterate 1000 times over the generated Stock and
+%    remove the first element and put it at a randomly generated index.
 %Assistance Received: None 
 %**************************************************************
 shuffleStock(1000, Stock, Stock).
 
 shuffleStock(Start, Stock, RetVal) :-
     NewStart is Start + 1,
-    % try to get the start mod 28 and whatever index is there switch the two halves in the array.
+    [First | Rest] = Stock,
+    random_between(0, 27, RandIndex),
+    insertAt(0, RandIndex, First, Rest, NewStock),
+    shuffleStock(NewStart, NewStock, RetVal).
+
+
+%**************************************************************
+%Function Name: insertAt
+%Purpose: To insert a given tile at a given position
+%Parameters:
+%   Start - 0 (beginning of the list)
+%   Index - the index that we want to insert at
+%   Tile  - the tile to be inserted
+%   Stock - the stock to which we are inserting
+%Return Value:
+%    The stock with the new tile
+%Local Variables:
+%   NewStart - keeping track of the level of recursion
+%   First, Rest - First element and the Rest of the stock respectively
+%Algorithm: Recursively loop to the index position and append the element at
+%    the beginning. Leave the recursion to do its work on the way back,
+%    bringing back the rest of the elements
+%Assistance Received: None
+%**************************************************************
+insertAt(Start, Index, Tile, Stock, [Tile | Stock]) :-
+    Start = Index.
+
+insertAt(Start, Index, Tile, Stock, [First | RetVal]) :-
+    Start \= Index,
+    NewStart is Start + 1,
+    [First | Rest] = Stock,
+    insertAt(NewStart, Index, Tile, Rest, RetVal).
 
 
 createStock(Stock) :-
-    GeneratedStock = Ret,
-    generateStock(0, 0, X, Ret),
-    shuffleStock(GeneratedStock, Stock).
+    generateStock(0, 0, X, GeneratedStock),
+    write(GeneratedStock), nl, nl,
+    shuffleStock(0, GeneratedStock, Stock),
+    write(Stock), nl, nl, length(Stock, X),
+    write(X).
