@@ -112,9 +112,77 @@ insertAt(Start, Index, Tile, Stock, [First | RetVal]) :-
     insertAt(NewStart, Index, Tile, Rest, RetVal).
 
 
+%**************************************************************
+%Function Name: shuffleStock
+%Purpose: To randomly shuffle the stock
+%Parameters:
+%   Start - beginning number for shuffling, then go all the way to 1000
+%   Stock - the newly generated stock
+%Return Value:                                                                STILL NOT COMPLETED!!!!!!!!!!!!!!!!!!!!
+%    RetVal - the shuffled stock
+%Local Variables:
+%Algorithm: Recursively iterate 1000 times over the generated Stock and
+%    remove the first element and put it at a randomly generated index.
+%Assistance Received: None 
+%**************************************************************
 createStock(Stock) :-
     generateStock(0, 0, X, GeneratedStock),
     write(GeneratedStock), nl, nl,
     shuffleStock(0, GeneratedStock, Stock),
     write(Stock), nl, nl, length(Stock, X),
     write(X).
+
+
+%**************************************************************
+%Function Name: dealTile
+%Purpose: To deal a tile from the stock to the given hand
+%Parameters:
+%   1. Stock - the given stock for the game
+%   2. Hand  - the hand to which to deal the tile
+%Return Value:
+%    The new hand with the given tile added
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+dealTile([], Hand, Hand).
+
+dealTile([First | Rest], Hand, [First | Hand]).
+
+
+%**************************************************************
+%Function Name: removeFirstTile
+%Purpose: To remove the first tile from the stock/hand
+%Parameters:
+%   Stock/Collection - the given stock/collection of tiles
+%Return Value:
+%    The collection without the first tile
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+removeFirstTile([First | Rest], Rest).
+
+
+%**************************************************************
+%Function Name: removeTile
+%Purpose: To remove a given tile from the collection of tiles
+%Parameters:
+%   Tile       - the given tile to remove
+%   Collection - the given collection to remove the tile from
+%Return Value:
+%    New collection with the given tile removed
+%Local Variables:
+%   First   - first tile from the collection
+%   Rest    - remaining tiles from the collection
+%Algorithm: Recursively iterate over the collection until First = Tile,
+%           then simply return Rest and backtrack to get the other tiles
+%Assistance Received: None 
+%**************************************************************
+removeTile(Tile, Collection, Rest) :-
+    [First | Rest] = Collection,
+    First = Tile.
+
+removeTile(Tile, Collection, [First | RetVal]) :-
+    [First | Rest] = Collection,
+    removeTile(Tile, Rest, RetVal).
