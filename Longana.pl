@@ -6,20 +6,6 @@
 %************************************************************
 
 
-%************************************************************************************************
-%*********************************** Tile Implementation ****************************************
-%************************************************************************************************
-
-validTile(Pip1, Pip2) :-
-    Pip1 =< 6,
-    Pip1 >= 0,
-    Pip2 =< 6,
-    Pip2 >= 0.
-
-isDoubleTile(Pip1, Pip2) :-
-    Pip1 = Pip2.
-
-
 
 %************************************************************************************************
 %*********************************** Stock Implementation ***************************************
@@ -74,7 +60,7 @@ generateStock(Pip1, Pip2, Stock, RetVal) :-
 %    remove the first element and put it at a randomly generated index.
 %Assistance Received: None 
 %**************************************************************
-shuffleStock(1000, Stock, Stock).
+shuffleStock(500, Stock, Stock).
 
 shuffleStock(Start, Stock, RetVal) :-
     NewStart is Start + 1,
@@ -82,6 +68,78 @@ shuffleStock(Start, Stock, RetVal) :-
     random_between(0, 27, RandIndex),
     insertAt(0, RandIndex, First, Rest, NewStock),
     shuffleStock(NewStart, NewStock, RetVal).
+
+
+%**************************************************************
+%Function Name: createStock
+%Purpose: To generate and randomly shuffle a new stock for a round of Longana
+%Parameters: None
+%Return Value:  A newly generated and shuffled stock!
+%Local Variables:
+%   GeneratedStock - the result of generateStock clause
+%Algorithm: None, look at generateStock and shuffleStock for details
+%Assistance Received: None 
+%**************************************************************
+createStock(Stock) :-
+    generateStock(0, 0, [], GeneratedStock),
+    shuffleStock(0, GeneratedStock, Stock).
+
+
+%**************************************************************
+%Function Name: dealTile
+%Purpose: To deal a tile from the stock to the given hand
+%Parameters:
+%   1. Stock - the given stock for the game
+%   2. Hand  - the hand to which to deal the tile
+%Return Value:
+%    The new hand with the given tile added
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+dealTile([], Hand, Hand).
+
+dealTile([First | Rest], Hand, [First | Hand]).
+
+
+%************************************************************************************************
+%************************************ Tile Implementation ***************************************
+%************************************************************************************************
+
+
+%**************************************************************
+%Function Name: validTile
+%Purpose: To make sure that the given tile is valid, i.e. it is in the range of
+%         the 28 double tile set!
+%Parameters:
+%   Pip1    - left side of the tile
+%   Pip2    - right side of the tile
+%   Note*   - Should pass a tile as a list, such as ?- validTile( [2,3] ).
+%Return Value:  true if tile is valid, false otherwise
+%Local Variables: None
+%Algorithm: Check for given conditions for a tile to be valid
+%Assistance Received: None 
+%**************************************************************
+validTile([Pip1 | [Pip2 | _]]) :-
+    Pip1 =< 6,
+    Pip1 >= 0,
+    Pip2 =< 6,
+    Pip2 >= 0.
+
+
+%**************************************************************
+%Function Name: isDoubleTile
+%Purpose: To determine whether a tile is double or not
+%Parameters:
+%   Pip1   - left side of tile
+%   Pip2   - right side of tile
+%Return Value:  true if tile is double, false otherwise
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+isDoubleTile([Pip1 | [Pip2 | _]]) :-
+    Pip1 = Pip2.
 
 
 %**************************************************************
@@ -113,41 +171,18 @@ insertAt(Start, Index, Tile, Stock, [First | RetVal]) :-
 
 
 %**************************************************************
-%Function Name: shuffleStock
-%Purpose: To randomly shuffle the stock
+%Function Name: insert
+%Purpose: A shorthand clause to insert a tile at the beginning of a collection
 %Parameters:
-%   Start - beginning number for shuffling, then go all the way to 1000
-%   Stock - the newly generated stock
-%Return Value:                                                                STILL NOT COMPLETED!!!!!!!!!!!!!!!!!!!!
-%    RetVal - the shuffled stock
-%Local Variables:
-%Algorithm: Recursively iterate 1000 times over the generated Stock and
-%    remove the first element and put it at a randomly generated index.
-%Assistance Received: None 
-%**************************************************************
-createStock(Stock) :-
-    generateStock(0, 0, X, GeneratedStock),
-    write(GeneratedStock), nl, nl,
-    shuffleStock(0, GeneratedStock, Stock),
-    write(Stock), nl, nl, length(Stock, X),
-    write(X).
-
-
-%**************************************************************
-%Function Name: dealTile
-%Purpose: To deal a tile from the stock to the given hand
-%Parameters:
-%   1. Stock - the given stock for the game
-%   2. Hand  - the hand to which to deal the tile
+%   Tile         - the tile to be inserted
+%   Collection   - the collection to which we are inserting
 %Return Value:
-%    The new hand with the given tile added
+%    The collection with the new tile up front
 %Local Variables: None
 %Algorithm: None
-%Assistance Received: None 
+%Assistance Received: None
 %**************************************************************
-dealTile([], Hand, Hand).
-
-dealTile([First | Rest], Hand, [First | Hand]).
+insert(Tile, Collection, [Tile | Collection]).
 
 
 %**************************************************************
