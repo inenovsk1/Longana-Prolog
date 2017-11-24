@@ -7,6 +7,40 @@
 
 
 
+
+%************************************************************************************************
+%************************************ Round Implementation **************************************
+%************************************************************************************************
+
+
+%**************************************************************
+%Function Name: initializeRound
+%Purpose: To create a new round, i.e. generate a stock and deal tiles to each player
+%Parameters: None
+%Return Value: List containing Human hand, Computer hand, Stock after tiles we dealt i.e. ->
+%              [HumanHand, ComputerHand, RoundStock].
+%Local Variables:
+%   Stock      - A newly generated and shuffled stock
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+initializeRound(Ret) :-
+    createStock(Stock),
+    dealTilesAtRoundBeginning(0, 8, Stock, [], [], Ret),
+    [HumanHand | [ComputerHand | [RoundStock | _ ]]] = Ret,
+    write(HumanHand), nl,
+    write(ComputerHand), nl,
+    write(RoundStock), nl, nl.
+
+
+
+%************************************************************************************************
+%********************************** Strategies Implementation ***********************************
+%************************************************************************************************
+
+
+
+
 %************************************************************************************************
 %*********************************** Stock Implementation ***************************************
 %************************************************************************************************
@@ -100,6 +134,40 @@ createStock(Stock) :-
 dealTile([], Hand, Hand).
 
 dealTile([First | Rest], Hand, [First | Hand]).
+
+
+%**************************************************************
+%Function Name: dealTilesAtRoundBeginning
+%Purpose: To distribute 8 tiles to each player at the beginning of a round.
+%Parameters:
+%   Start         - the beginning of a recursion, usually 0
+%   End           - when to stop the recursion - usually 8, since each player needs to have 8 tiles distributed to her
+%   Stock         - the given stock for the game
+%   HumanHand     - the hand of the human player
+%   ComputerHand  - the hand of the computer player
+%Return Value:
+%    A list containing 3 lists -> [HumanHand, ComputerHand, Stock].
+%Local Variables:
+%   NewHumanHand    - Human hand after a tile was given from the stock
+%   NewStock1       - Stock after a tile was given to human
+%   NewComputerHand - Computer hand after a tile was given from the stock
+%   FinalStock      - Stock after a tile was given to computer
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+dealTilesAtRoundBeginning(Start, End, Stock, HumanHand, ComputerHand, Ret) :-
+    Start = End,
+    append([HumanHand], [ComputerHand], Hands),
+    append(Hands, [Stock], Ret).
+
+dealTilesAtRoundBeginning(Start, End, Stock, HumanHand, ComputerHand, Ret) :-
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock1),
+    dealTile(NewStock1, ComputerHand, NewComputerHand),
+    removeFirstTile(NewStock1, FinalStock),
+    NewStart is Start + 1,
+    dealTilesAtRoundBeginning(NewStart, End, FinalStock, NewHumanHand, NewComputerHand, Ret).
+
 
 
 %************************************************************************************************
@@ -221,3 +289,4 @@ removeTile(Tile, Collection, Rest) :-
 removeTile(Tile, Collection, [First | RetVal]) :-
     [First | Rest] = Collection,
     removeTile(Tile, Rest, RetVal).
+
