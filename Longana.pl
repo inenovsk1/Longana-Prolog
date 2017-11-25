@@ -211,6 +211,20 @@ isDoubleTile([Pip1 | [Pip2 | _]]) :-
 
 
 %**************************************************************
+%Function Name: reverseTile
+%Purpose: To reverse a tile
+%Parameters:
+%   Pip1   - left side of tile
+%   Pip2   - right side of tile
+%Return Value:  the reversed tile
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+reverseTile([Pip1 | Pip2], [Pip2 | Pip1]).
+
+
+%**************************************************************
 %Function Name: insertAt
 %Purpose: To insert a given tile at a given position
 %Parameters:
@@ -289,4 +303,3 @@ removeTile(Tile, Collection, Rest) :-
 removeTile(Tile, Collection, [First | RetVal]) :-
     [First | Rest] = Collection,
     removeTile(Tile, Rest, RetVal).
-
