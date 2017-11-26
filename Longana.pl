@@ -51,6 +51,15 @@ printState(State) :-
 
 
 
+
+
+
+
+
+
+
+
+
 %************************************************************************************************
 %********************************** Strategies Implementation ***********************************
 %************************************************************************************************
@@ -189,6 +198,13 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
 
 
 
+
+
+
+
+
+
+
 %************************************************************************************************
 %*********************************** Stock Implementation ***************************************
 %************************************************************************************************
@@ -315,6 +331,18 @@ dealTilesAtRoundBeginning(Start, End, Stock, HumanHand, ComputerHand, Ret) :-
     removeFirstTile(NewStock1, FinalStock),
     NewStart is Start + 1,
     dealTilesAtRoundBeginning(NewStart, End, FinalStock, NewHumanHand, NewComputerHand, Ret).
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
