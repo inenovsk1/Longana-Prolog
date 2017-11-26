@@ -55,8 +55,39 @@ printState(State) :-
 %********************************** Strategies Implementation ***********************************
 %************************************************************************************************
 
-%computerAvailableMoves(Hand, Board) :-
-%    asd.
+
+%**************************************************************
+%Function Name: computerAvailableMoves
+%Purpose: To get the available tiles of possible computer moves
+%Parameters:
+%   Hand    - computer's hand
+%   Board   - the current board
+%Return Value: A list of available tiles for the computer to play
+%Local Variables:
+%   Tile     - first tile of computer's hand
+%   Rest     - the rest of the computer's hand
+%Algorithm:
+%   If a tile can be played on the right, or is double and can be played on the left,
+%   then add it to the answer, otherwise recursively call the function on the rest
+%   of the hand.
+%Assistance Received: None 
+%**************************************************************
+computerAvailableMoves([], Board, []).
+
+computerAvailableMoves(Hand, Board, [Tile | AvailableTiles]) :-
+    [Tile | Rest] = Hand,
+    canPlayRight(Tile, Board),
+    computerAvailableMoves(Rest, Board, AvailableTiles).
+
+computerAvailableMoves(Hand, Board, [Tile | AvailableTiles]) :-
+    [Tile | Rest] = Hand,
+    isDoubleTile(Tile),
+    canPlayLeft(Tile, Board),
+    computerAvailableMoves(Rest, Board, AvailableTiles).
+
+computerAvailableMoves(Hand, Board, AvailableTiles) :-
+    [Tile | Rest] = Hand,
+    computerAvailableMoves(Rest, Board, AvailableTiles).
 
 
 
@@ -74,18 +105,18 @@ printState(State) :-
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-canPlayLeft(Tile, Board, CanPlay) :-
+canPlayLeft(Tile, Board) :-
     [Pip1 | [Pip2 | _ ]] = Tile,
     [LeftTile | Rest] = Board,
     [BoardPip1 | _ ] = LeftTile,
-    Pip2 = BoardPip1,
-    CanPlay = true.
+    Pip2 = BoardPip1.
 
-canPlayLeft(Tile, Board, CanPlay) :-
+canPlayLeft(Tile, Board) :-
     reverseTile(Tile, ReversedTile),
-    canPlayLeft(ReversedTile, Board, CanPlay).
-
-canPlayLeft(Tile, Board, false).
+    [Pip1 | [Pip2 | _ ]] = ReversedTile,
+    [LeftTile | Rest] = Board,
+    [BoardPip1 | _ ] = LeftTile,
+    Pip2 = BoardPip1.
 
 
 
@@ -103,22 +134,22 @@ canPlayLeft(Tile, Board, false).
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-canPlayRight(Tile, Board, CanPlay) :-
+canPlayRight(Tile, Board) :-
     [Pip1 | [Pip2 | _ ]] = Tile,
     last(Board, RightTile),
     [BoardPip1 | [BoardPip2 | _ ]] = RightTile,
-    Pip1 = BoardPip2,
-    CanPlay = true.
+    Pip1 = BoardPip2.
 
-canPlayRight(Tile, Board, CanPlay) :-
+canPlayRight(Tile, Board) :-
     reverseTile(Tile, ReversedTile),
-    canPlayRight(ReversedTile, Board, CanPlay).
+    [Pip1 | [Pip2 | _ ]] = ReversedTile,
+    last(Board, RightTile),
+    [BoardPip1 | [BoardPip2 | _ ]] = RightTile,
+    Pip1 = BoardPip2.
 
-canPlayRight(Tile, Board, false).
 
 
-
-%computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
+computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
 
 
 
