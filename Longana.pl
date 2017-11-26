@@ -68,26 +68,61 @@ printState(State) :-
 %   Rest     - the rest of the computer's hand
 %Algorithm:
 %   If a tile can be played on the right, or is double and can be played on the left,
-%   then add it to the answer, otherwise recursively call the function on the rest
-%   of the hand.
+%   then add it to the list of available tiles, otherwise recursively call the function
+%   on the rest of the hand.
 %Assistance Received: None 
 %**************************************************************
-computerAvailableMoves([], Board, []).
+computerAvailableTiles([], Board, []).
 
-computerAvailableMoves(Hand, Board, [Tile | AvailableTiles]) :-
+computerAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
     canPlayRight(Tile, Board),
-    computerAvailableMoves(Rest, Board, AvailableTiles).
+    computerAvailableTiles(Rest, Board, AvailableTiles).
 
-computerAvailableMoves(Hand, Board, [Tile | AvailableTiles]) :-
+computerAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
     isDoubleTile(Tile),
     canPlayLeft(Tile, Board),
-    computerAvailableMoves(Rest, Board, AvailableTiles).
+    computerAvailableTiles(Rest, Board, AvailableTiles).
 
-computerAvailableMoves(Hand, Board, AvailableTiles) :-
+computerAvailableTiles(Hand, Board, AvailableTiles) :-
+    [ _ | Rest] = Hand,
+    computerAvailableTiles(Rest, Board, AvailableTiles).
+
+
+
+%**************************************************************
+%Function Name: humanAvailableMoves
+%Purpose: To get the available tiles of possible human moves
+%Parameters:
+%   Hand    - human's hand
+%   Board   - the current board
+%Return Value: A list of available tiles for the human to play
+%Local Variables:
+%   Tile     - first tile of human's hand
+%   Rest     - the rest of the human's hand
+%Algorithm:
+%   If a tile can be played on the left, or is double and can be played on the right,
+%   then add it to the list of available tiles, otherwise recursively call the function
+%   on the rest of the hand.
+%Assistance Received: None 
+%**************************************************************
+humanAvailableTiles([], Board, []).
+
+humanAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
-    computerAvailableMoves(Rest, Board, AvailableTiles).
+    canPlayLeft(Tile, Board),
+    humanAvailableTiles(Rest, Board, AvailableTiles).
+
+humanAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
+    [Tile | Rest] = Hand,
+    isDoubleTile(Tile),
+    canPlayRight(Tile, Board),
+    humanAvailableTiles(Rest, Board, AvailableTiles).
+
+humanAvailableTiles(Hand, Board, AvailableTiles) :-
+    [ _ | Rest] = Hand,
+    humanAvailableTiles(Rest, Board, AvailableTiles).
 
 
 
