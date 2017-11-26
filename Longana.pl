@@ -27,16 +27,98 @@
 initializeRound(Ret) :-
     createStock(Stock),
     dealTilesAtRoundBeginning(0, 8, Stock, [], [], Ret),
-    [HumanHand | [ComputerHand | [RoundStock | _ ]]] = Ret,
-    write(HumanHand), nl,
-    write(ComputerHand), nl,
-    write(RoundStock), nl, nl.
+    printState(Ret).
+
+
+%**************************************************************
+%Function Name: printState
+%Purpose: To print the current state of Longana, i.e. human hand, computer hand, stock
+%Parameters:
+%   State    - a list of human hand, computer hand, and stock
+%Return Value: None
+%Local Variables:
+%   HummanHand    - Current human hand
+%   ComputerHand  - Current computer hand
+%   Stock         - Current stock
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+printState(State) :-
+    [HumanHand | [ComputerHand | [Stock | _ ]]] = State,
+    write("Humman hand: "), write(HumanHand), nl,
+    write("Computer hand: "), write(ComputerHand), nl,
+    write("Stock: "), write(Stock), nl, nl.
 
 
 
 %************************************************************************************************
 %********************************** Strategies Implementation ***********************************
 %************************************************************************************************
+
+%computerAvailableMoves(Hand, Board) :-
+%    asd.
+
+
+
+%**************************************************************
+%Function Name: canPlayLeft
+%Purpose: To determine whether a tile can be played from the left side of the board
+%Parameters:
+%   Tile    - tile to be played
+%   Board   - the current board
+%Return Value: true if tile can be played, false otherwise
+%Local Variables:
+%   Pip1, Pip2   - left/right pip of tile to be played
+%   LeftTile     - left most tile on the board
+%   BoardPip1    - left pip of LeftTile
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+canPlayLeft(Tile, Board, CanPlay) :-
+    [Pip1 | [Pip2 | _ ]] = Tile,
+    [LeftTile | Rest] = Board,
+    [BoardPip1 | _ ] = LeftTile,
+    Pip2 = BoardPip1,
+    CanPlay = true.
+
+canPlayLeft(Tile, Board, CanPlay) :-
+    reverseTile(Tile, ReversedTile),
+    canPlayLeft(ReversedTile, Board, CanPlay).
+
+canPlayLeft(Tile, Board, false).
+
+
+
+%**************************************************************
+%Function Name: canPlayRight
+%Purpose: To determine whether a tile can be played from the right side of the board
+%Parameters:
+%   Tile    - tile to be played
+%   Board   - the current board
+%Return Value: true if tile can be played, false otherwise
+%Local Variables:
+%   Pip1, Pip2   - left/right pip of tile to be played
+%   LeftTile     - right most tile on the board
+%   BoardPip1    - right pip of RightTile
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+canPlayRight(Tile, Board, CanPlay) :-
+    [Pip1 | [Pip2 | _ ]] = Tile,
+    last(Board, RightTile),
+    [BoardPip1 | [BoardPip2 | _ ]] = RightTile,
+    Pip1 = BoardPip2,
+    CanPlay = true.
+
+canPlayRight(Tile, Board, CanPlay) :-
+    reverseTile(Tile, ReversedTile),
+    canPlayRight(ReversedTile, Board, CanPlay).
+
+canPlayRight(Tile, Board, false).
+
+
+
+%computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
 
 
 
@@ -221,7 +303,7 @@ isDoubleTile([Pip1 | [Pip2 | _]]) :-
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-reverseTile([Pip1 | Pip2], [Pip2 | Pip1]).
+reverseTile([Pip1 | [Pip2 | _ ]], [Pip2 , Pip1]).
 
 
 %**************************************************************
