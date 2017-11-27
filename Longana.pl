@@ -80,6 +80,15 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret).
 
 
+playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+
+
+
+playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+
+
+
+
 %**************************************************************
 %Function Name: computerAvailableMoves
 %Purpose: To get the available tiles of possible computer moves
