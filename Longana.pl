@@ -68,10 +68,16 @@ printState(State) :-
 %************************************************************************************************
 
 
-computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
+computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTiles, TileToPlay),
+    playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret).
 
+computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
+    computerAvailableTiles(ComputerHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, TileToPlay),
+    isDoubleTile(TileToPlay),
+    playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret).
 
 
 %**************************************************************
