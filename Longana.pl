@@ -60,13 +60,18 @@ printState(State) :-
 
 
 
+
+
+
 %************************************************************************************************
 %********************************** Strategies Implementation ***********************************
 %************************************************************************************************
 
 
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
-    computerAvailableTiles(ComputerHand, Board, AvailableTiles).
+    computerAvailableTiles(ComputerHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, TileToPlay),
+
 
 
 %**************************************************************
@@ -103,7 +108,6 @@ computerAvailableTiles(Hand, Board, AvailableTiles) :-
     computerAvailableTiles(Rest, Board, AvailableTiles).
 
 
-
 %**************************************************************
 %Function Name: humanAvailableMoves
 %Purpose: To get the available tiles of possible human moves
@@ -138,7 +142,6 @@ humanAvailableTiles(Hand, Board, AvailableTiles) :-
     humanAvailableTiles(Rest, Board, AvailableTiles).
 
 
-
 %**************************************************************
 %Function Name: canPlayLeft
 %Purpose: To determine whether a tile can be played from the left side of the board
@@ -165,7 +168,6 @@ canPlayLeft(Tile, Board) :-
     [LeftTile | Rest] = Board,
     [BoardPip1 | _ ] = LeftTile,
     Pip2 = BoardPip1.
-
 
 
 %**************************************************************
@@ -196,7 +198,6 @@ canPlayRight(Tile, Board) :-
     Pip1 = BoardPip2.
 
 
-
 %**************************************************************
 %Function Name: highestTile
 %Purpose: To determine the highest tile in the available tiles to play
@@ -211,6 +212,8 @@ canPlayRight(Tile, Board) :-
 %           Keep doing this, until only 1 tile is left. This is your answer.
 %Assistance Received: None 
 %**************************************************************
+highestTile([], []).
+
 highestTile(AvailableTiles, Answer) :-
     length(AvailableTiles, L),
     L = 1,
