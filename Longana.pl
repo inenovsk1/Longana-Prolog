@@ -65,6 +65,10 @@ printState(State) :-
 %************************************************************************************************
 
 
+computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
+    computerAvailableTiles(ComputerHand, Board, AvailableTiles).
+
+
 %**************************************************************
 %Function Name: computerAvailableMoves
 %Purpose: To get the available tiles of possible computer moves
@@ -193,7 +197,47 @@ canPlayRight(Tile, Board) :-
 
 
 
-computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help) :-
+%**************************************************************
+%Function Name: highestTile
+%Purpose: To determine the highest tile in the available tiles to play
+%Parameters:
+%   AvailableTiles    - tiles which can be played
+%Return Value:
+%             The tile with highest sum of the available tiles
+%Local Variables:
+%   First, Second        - first and second tiles of the available ones
+%   SumFirst, SumSecond  - sum of the first tile and sum of the second tile
+%Algorithm: Get the first 2 elements in the list and remove the one with lower pip sum.
+%           Keep doing this, until only 1 tile is left. This is your answer.
+%Assistance Received: None 
+%**************************************************************
+highestTile(AvailableTiles, Answer) :-
+    length(AvailableTiles, L),
+    L = 1,
+    [Answer | _ ] = AvailableTiles.
+
+highestTile(AvailableTiles, Answer) :-
+    [First | [Second | _ ]] = AvailableTiles,
+    pipSum(First, SumFirst),
+    pipSum(Second, SumSecond),
+    SumFirst > SumSecond,
+    [ _ | [ _ | Rest]] = AvailableTiles,
+    NewAvailableTiles = [First | Rest],
+    highestTile(NewAvailableTiles, Answer).
+
+highestTile(AvailableTiles, Answer) :-
+    [First | [Second | _ ]] = AvailableTiles,
+    pipSum(First, SumFirst),
+    pipSum(Second, SumSecond),
+    SumSecond > SumFirst,
+    [ _ | Rest] = AvailableTiles,
+    highestTile(Rest, Answer).
+
+
+
+
+
+
 
 
 
@@ -297,7 +341,7 @@ createStock(Stock) :-
 %**************************************************************
 dealTile([], Hand, Hand).
 
-dealTile([First | Rest], Hand, [First | Hand]).
+dealTile([First | _ ], Hand, [First | Hand]).
 
 
 %**************************************************************
@@ -454,7 +498,7 @@ insert(Tile, Collection, [Tile | Collection]).
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-removeFirstTile([First | Rest], Rest).
+removeFirstTile([ _ | Rest], Rest).
 
 
 %**************************************************************
@@ -479,3 +523,20 @@ removeTile(Tile, Collection, Rest) :-
 removeTile(Tile, Collection, [First | RetVal]) :-
     [First | Rest] = Collection,
     removeTile(Tile, Rest, RetVal).
+
+
+%**************************************************************
+%Function Name: pipSum
+%Purpose: To get the sum of a tile's pips
+%Parameters:
+%   Tile       - the given tile to calculate
+%Return Value:
+%   Sum of the tile's pips
+%Local Variables:
+%   Pip1, Pip2 - left and right pip respectively
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+pipSum(Tile, Sum) :-
+    [Pip1 | [Pip2 | _ ]] = Tile,
+    Sum is Pip1 + Pip2.
