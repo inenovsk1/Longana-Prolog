@@ -68,6 +68,15 @@ printState(State) :-
 %************************************************************************************************
 
 
+% computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
+%     Help = true,
+
+computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
+    computerAvailableTiles(ComputerHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    Ret = [Board, Stock, SkipLastTurn].
+
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTiles, TileToPlay),
@@ -81,11 +90,43 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
 
 
 playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+    length(Stock, Len),
+    L is Len - 1,
+    canPlayRight(TileToPlay, Board, NeedsReversal),
+    NeedsReversal = false,
+    insertAt(0, L, TileToPlay, Board, NewBoard),
+    NewSkip = false,
+    Ret = [NewBoard, Stock, NewSkip].
 
+playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+    length(Stock, Len),
+    L is Len - 1,
+    canPlayRight(ReversedTile, Board, NeedsReversal),
+    NeedsReversal = true,
+    reverseTile(TileToPlay, ReversedTile),
+    insertAt(0, L, ReversedTile, Board, NewBoard),
+    NewSkip = false,
+    Ret = [NewBoard, Stock, NewSkip].
 
 
 playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+    length(Stock, Len),
+    L is Len -1,
+    canPlayLeft(TileToPlay, Board, NeedsReversal),
+    NeedsReversal = false,
+    NewBoard = [TileToPlay | Board],
+    NewSkip = false,
+    Ret = [NewBoard, Stock, NewSkip].
 
+playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+    length(Stock, Len),
+    L is Len -1,
+    canPlayLeft(ReversedTile, Board, NeedsReversal),
+    NeedsReversal = true,
+    reverseTile(TileToPlay, ReversedTile),
+    NewBoard = [ReversedTile | Board],
+    NewSkip = false,
+    Ret = [NewBoard, Stock, NewSkip].
 
 
 
@@ -109,13 +150,13 @@ computerAvailableTiles([], Board, []).
 
 computerAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
-    canPlayRight(Tile, Board),
+    canPlayRight(Tile, Board, _ ),
     computerAvailableTiles(Rest, Board, AvailableTiles).
 
 computerAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
     isDoubleTile(Tile),
-    canPlayLeft(Tile, Board),
+    canPlayLeft(Tile, Board, _ ),
     computerAvailableTiles(Rest, Board, AvailableTiles).
 
 computerAvailableTiles(Hand, Board, AvailableTiles) :-
@@ -143,13 +184,13 @@ humanAvailableTiles([], Board, []).
 
 humanAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
-    canPlayLeft(Tile, Board),
+    canPlayLeft(Tile, Board, _ ),
     humanAvailableTiles(Rest, Board, AvailableTiles).
 
 humanAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
     [Tile | Rest] = Hand,
     isDoubleTile(Tile),
-    canPlayRight(Tile, Board),
+    canPlayRight(Tile, Board, _ ),
     humanAvailableTiles(Rest, Board, AvailableTiles).
 
 humanAvailableTiles(Hand, Board, AvailableTiles) :-
@@ -171,18 +212,20 @@ humanAvailableTiles(Hand, Board, AvailableTiles) :-
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-canPlayLeft(Tile, Board) :-
+canPlayLeft(Tile, Board, NeedsReversal) :-
     [Pip1 | [Pip2 | _ ]] = Tile,
     [LeftTile | Rest] = Board,
     [BoardPip1 | _ ] = LeftTile,
-    Pip2 = BoardPip1.
+    Pip2 = BoardPip1,
+    NeedsReversal = false.
 
-canPlayLeft(Tile, Board) :-
+canPlayLeft(Tile, Board, NeedsReversal) :-
     reverseTile(Tile, ReversedTile),
     [Pip1 | [Pip2 | _ ]] = ReversedTile,
     [LeftTile | Rest] = Board,
     [BoardPip1 | _ ] = LeftTile,
-    Pip2 = BoardPip1.
+    Pip2 = BoardPip1,
+    NeedsReversal = true.
 
 
 %**************************************************************
@@ -199,18 +242,20 @@ canPlayLeft(Tile, Board) :-
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-canPlayRight(Tile, Board) :-
+canPlayRight(Tile, Board, NeedsReversal) :-
     [Pip1 | [Pip2 | _ ]] = Tile,
     last(Board, RightTile),
     [BoardPip1 | [BoardPip2 | _ ]] = RightTile,
-    Pip1 = BoardPip2.
+    Pip1 = BoardPip2,
+    NeedsReversal = false.
 
-canPlayRight(Tile, Board) :-
+canPlayRight(Tile, Board, NeedsReversal) :-
     reverseTile(Tile, ReversedTile),
     [Pip1 | [Pip2 | _ ]] = ReversedTile,
     last(Board, RightTile),
     [BoardPip1 | [BoardPip2 | _ ]] = RightTile,
-    Pip1 = BoardPip2.
+    Pip1 = BoardPip2,
+    NeedsReversal = true.
 
 
 %**************************************************************
