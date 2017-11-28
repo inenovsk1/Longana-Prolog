@@ -68,6 +68,7 @@ printState(State) :-
 %************************************************************************************************
 
 
+
 % computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
 %     Help = true,
 
@@ -75,59 +76,111 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L = 0,
-    Ret = [Board, Stock, SkipLastTurn].
+    dealTile(Stock, ComputerHand, NewComputerHand),
+    removeFirstTile(Stock, NewStock),
+    computerAvailableTiles(NewComputerHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, TileToPlay),
+    removeTile(TileToPlay, ComputerHand, NewComputerHand),
+    playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, NewStock, NewComputerHand, NewSkip].
+
+computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
+    computerAvailableTiles(ComputerHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    dealTile(Stock, ComputerHand, NewComputerHand),
+    removeFirstTile(Stock, NewStock),
+    computerAvailableTiles(NewComputerHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, TileToPlay),
+    isDoubleTile(TileToPlay),
+    removeTile(TileToPlay, ComputerHand, NewComputerHand),
+    playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, NewStock, NewComputerHand, NewSkip].
 
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTiles, TileToPlay),
-    playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret).
+    removeTile(TileToPlay, ComputerHand, NewComputerHand),
+    playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, NewStock, NewComputerHand, NewSkip].
 
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTiles, TileToPlay),
     isDoubleTile(TileToPlay),
-    playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret).
+    removeTile(TileToPlay, ComputerHand, NewComputerHand),
+    playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, NewStock, NewComputerHand, NewSkip].
 
 
+%**************************************************************
+%Function Name: playRight
+%Purpose: To play a tile on the right side of the board
+%Parameters:
+%   Board         - current board
+%   Stock         - current stock
+%   TileToPlay    - the tile that is being placed on the board
+%   SkipLastTurn  - Whether turn was skipped or not
+%Return Value: A list containing new board, new stock and whether turn was skipped
+%Local Variables:
+%   L, Len          - length of the board
+%   NeedsReversal   - whether the tile needs to be reversed or not
+%   NewBoard        - the board after tile insertion
+%Algorithm: Check if tile can be placed on the right, then if it should be reversed
+%           or not. After that place it on the board
+%Assistance Received: None 
+%**************************************************************
 playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
-    length(Stock, Len),
-    L is Len - 1,
+    length(Board, Len),
     canPlayRight(TileToPlay, Board, NeedsReversal),
-    NeedsReversal = false,
-    insertAt(0, L, TileToPlay, Board, NewBoard),
-    NewSkip = false,
-    Ret = [NewBoard, Stock, NewSkip].
+    NeedsReversal = false,  % If reverseal is needed, then backtrack and call the other case
+    insertAt(0, Len, TileToPlay, Board, NewBoard),
+    Ret = [NewBoard, Stock, false].
 
 playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
-    length(Stock, Len),
-    L is Len - 1,
-    canPlayRight(ReversedTile, Board, NeedsReversal),
-    NeedsReversal = true,
+    length(Board, Len),
     reverseTile(TileToPlay, ReversedTile),
-    insertAt(0, L, ReversedTile, Board, NewBoard),
-    NewSkip = false,
-    Ret = [NewBoard, Stock, NewSkip].
+    canPlayRight(ReversedTile, Board, NeedsReversal),
+    insertAt(0, Len, ReversedTile, Board, NewBoard),
+    Ret = [NewBoard, Stock, false].
 
 
+%**************************************************************
+%Function Name: playLeft
+%Purpose: To play a tile on the left side of the board
+%Parameters:
+%   Board         - current board
+%   Stock         - current stock
+%   TileToPlay    - the tile that is being placed on the board
+%   SkipLastTurn  - Whether turn was skipped or not
+%Return Value: A list containing new board, new stock and whether turn was skipped
+%Local Variables:
+%   L, Len          - length of the board
+%   NeedsReversal   - whether the tile needs to be reversed or not
+%   NewBoard        - the board after tile insertion
+%Algorithm: Check if tile can be placed on the left, then if it should be reversed
+%           or not. After that place it on the board
+%Assistance Received: None 
+%**************************************************************
 playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
-    length(Stock, Len),
+    length(Board, Len),
     L is Len -1,
     canPlayLeft(TileToPlay, Board, NeedsReversal),
-    NeedsReversal = false,
+    NeedsReversal = false,  % If reverseal is needed, then backtrack and call the other case
     NewBoard = [TileToPlay | Board],
-    NewSkip = false,
-    Ret = [NewBoard, Stock, NewSkip].
+    Ret = [NewBoard, Stock, false].
 
 playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
-    length(Stock, Len),
+    length(Board, Len),
     L is Len -1,
-    canPlayLeft(ReversedTile, Board, NeedsReversal),
-    NeedsReversal = true,
     reverseTile(TileToPlay, ReversedTile),
+    canPlayLeft(ReversedTile, Board, NeedsReversal),
     NewBoard = [ReversedTile | Board],
-    NewSkip = false,
-    Ret = [NewBoard, Stock, NewSkip].
-
+    Ret = [NewBoard, Stock, false].
 
 
 %**************************************************************
@@ -579,6 +632,8 @@ removeFirstTile([ _ | Rest], Rest).
 %           then simply return Rest and backtrack to get the other tiles
 %Assistance Received: None 
 %**************************************************************
+removeTile([], Collection, Collection).
+
 removeTile(Tile, Collection, Rest) :-
     [First | Rest] = Collection,
     First = Tile.
