@@ -134,6 +134,8 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
 %           or not. After that place it on the board
 %Assistance Received: None 
 %**************************************************************
+playRight(Board, Stock, [], SkipLastTurn, [Board, Stock, true]).
+
 playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
     length(Board, Len),
     canPlayRight(TileToPlay, Board, NeedsReversal),
@@ -166,6 +168,8 @@ playRight(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
 %           or not. After that place it on the board
 %Assistance Received: None 
 %**************************************************************
+playLeft(Board, Stock, [], SkipLastTurn, [Board, Stock, true]).
+
 playLeft(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
     length(Board, Len),
     L is Len -1,
