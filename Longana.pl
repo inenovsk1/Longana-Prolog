@@ -69,17 +69,78 @@ printState(State) :-
 
 
 
-% computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
-%     Help = true,
+% Currently do not handle the case where last turn was skipped!!!! Need to fix this!
+% Help mode
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    humanAvailableTiles(HumanHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, RecommendedTile),
+    canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    write("You can play tile "), write(RecommendedTile), write(" to the left!"), nl,
+    Ret = [Board, Stock, HumanHand, false].
 
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    humanAvailableTiles(HumanHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, RecommendedTile),
+    canPlayRight(RecommendedTile, Board, NeedsReversal),
+    isDoubleTile(RecommendedTile),
+    write("You can play tile "), write(RecommendedTile), write(" to the right!"), nl,
+    Ret = [Board, Stock, HumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    humanAvailableTiles(HumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    writeln("No moves available! Drawing from stock.."),
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
+    highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    write("You drew and can play tile "), write(RecommendedTile), write(" to the left!"), nl,
+    Ret = [Board, NewStock, NewHumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    humanAvailableTiles(HumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    writeln("No moves available! Drawing from stock.."),
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
+    highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    canPlayRight(RecommendedTile, Board, NeedsReversal),
+    isDoubleTile(RecommendedTile),
+    write("You drew and can play tile "), write(RecommendedTile), write(" to the right!"), nl,
+    Ret = [Board, NewStock, NewHumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    humanAvailableTiles(HumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    writeln("No moves available! Drawing from stock.."),
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
+    length(AvailableTilesAfterDraw, Len),
+    Len = 0,
+    [Drawn | _ ] = NewHumanHand,
+    write("You drew tile "), write(Drawn), write(". Skipping a turn due to inability to play!"), nl,
+    Ret = [Board, NewStock, NewHumanHand, true].
+
+% Normal case
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L = 0,
     dealTile(Stock, ComputerHand, NewComputerHand),
     removeFirstTile(Stock, NewStock),
-    computerAvailableTiles(NewComputerHand, Board, AvailableTiles),
-    highestTile(AvailableTiles, TileToPlay),
+    computerAvailableTiles(NewComputerHand, Board, AvailableTilesAfterDraw),
+    highestTile(AvailableTilesAfterDraw, TileToPlay),
     removeTile(TileToPlay, ComputerHand, NewComputerHand),
     playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
     [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
@@ -91,8 +152,8 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     L = 0,
     dealTile(Stock, ComputerHand, NewComputerHand),
     removeFirstTile(Stock, NewStock),
-    computerAvailableTiles(NewComputerHand, Board, AvailableTiles),
-    highestTile(AvailableTiles, TileToPlay),
+    computerAvailableTiles(NewComputerHand, Board, AvailableTilesAfterDraw),
+    highestTile(AvailableTilesAfterDraw, TileToPlay),
     isDoubleTile(TileToPlay),
     removeTile(TileToPlay, ComputerHand, NewComputerHand),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
@@ -222,7 +283,7 @@ computerAvailableTiles(Hand, Board, AvailableTiles) :-
 
 
 %**************************************************************
-%Function Name: humanAvailableMoves
+%Function Name: humanAvailableTiles
 %Purpose: To get the available tiles of possible human moves
 %Parameters:
 %   Hand    - human's hand
