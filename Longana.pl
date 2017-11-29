@@ -93,12 +93,12 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     humanAvailableTiles(HumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L = 0,
-    writeln("No moves available! Drawing from stock.."),
     dealTile(Stock, HumanHand, NewHumanHand),
     removeFirstTile(Stock, NewStock),
     humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, RecommendedTile),
     canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    writeln("No moves available! Drawing from stock.."),
     write("You drew and can play tile "), write(RecommendedTile), write(" to the left!"), nl,
     Ret = [Board, NewStock, NewHumanHand, false].
 
@@ -107,13 +107,13 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     humanAvailableTiles(HumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L = 0,
-    writeln("No moves available! Drawing from stock.."),
     dealTile(Stock, HumanHand, NewHumanHand),
     removeFirstTile(Stock, NewStock),
     humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, RecommendedTile),
     canPlayRight(RecommendedTile, Board, NeedsReversal),
     isDoubleTile(RecommendedTile),
+    writeln("No moves available! Drawing from stock.."),
     write("You drew and can play tile "), write(RecommendedTile), write(" to the right!"), nl,
     Ret = [Board, NewStock, NewHumanHand, false].
 
@@ -122,13 +122,13 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     humanAvailableTiles(HumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L = 0,
-    writeln("No moves available! Drawing from stock.."),
     dealTile(Stock, HumanHand, NewHumanHand),
     removeFirstTile(Stock, NewStock),
     humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     length(AvailableTilesAfterDraw, Len),
     Len = 0,
     [Drawn | _ ] = NewHumanHand,
+    writeln("No moves available! Drawing from stock.."),
     write("You drew tile "), write(Drawn), write(". Skipping a turn due to inability to play!"), nl,
     Ret = [Board, NewStock, NewHumanHand, true].
 
