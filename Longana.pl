@@ -69,8 +69,73 @@ printState(State) :-
 
 
 
-% Currently do not handle the case where last turn was skipped!!!! Need to fix this!
 % Help mode
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    SkipLastTurn = true,
+    anyAvailableTiles(HumanHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, RecommendedTile),
+    canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    write("You can play tile "), write(RecommendedTile), write(" to the left!"), nl,
+    Ret = [Board, Stock, HumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    SkipLastTurn = true,
+    anyAvailableTiles(HumanHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, RecommendedTile),
+    canPlayRight(RecommendedTile, Board, NeedsReversal),
+    isDoubleTile(RecommendedTile),
+    write("You can play tile "), write(RecommendedTile), write(" to the right!"), nl,
+    Ret = [Board, Stock, HumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    SkipLastTurn = true,
+    anyAvailableTiles(HumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    anyAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
+    highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    writeln("No moves available! Drawing from stock.."),
+    write("You drew and can play tile "), write(RecommendedTile), write(" to the left!"), nl,
+    Ret = [Board, NewStock, NewHumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    SkipLastTurn = true,
+    anyAvailableTiles(HumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    anyAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
+    highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    canPlayRight(RecommendedTile, Board, NeedsReversal),
+    isDoubleTile(RecommendedTile),
+    writeln("No moves available! Drawing from stock.."),
+    write("You drew and can play tile "), write(RecommendedTile), write(" to the right!"), nl,
+    Ret = [Board, NewStock, NewHumanHand, false].
+
+computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
+    Help = true,
+    SkipLastTurn = true,
+    anyAvailableTiles(HumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    anyAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
+    length(AvailableTilesAfterDraw, Len),
+    Len = 0,
+    [Drawn | _ ] = NewHumanHand,
+    writeln("No moves available! Drawing from stock.."),
+    write("You drew tile "), write(Drawn), write(". Skipping a turn due to inability to play!"), nl,
+    Ret = [Board, NewStock, NewHumanHand, true].
+
 computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     Help = true,
     humanAvailableTiles(HumanHand, Board, AvailableTiles),
@@ -132,7 +197,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     write("You drew tile "), write(Drawn), write(". Skipping a turn due to inability to play!"), nl,
     Ret = [Board, NewStock, NewHumanHand, true].
 
-% Normal case
+% Normal case - computer play mode
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     SkipLastTurn = true,
     anyAvailableTiles(ComputerHand, Board, AvailableTiles),
