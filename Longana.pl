@@ -654,9 +654,81 @@ highestTile(AvailableTiles, Answer) :-
 %************************************************************************************************
 
 
-drawBoard(Board) :-
-    
+%**************************************************************
+%Function Name: drawDoubleTiles
+%Purpose: To draw double tiles on the board
+%Parameters:
+%   Board   - current board for longana (list of all tiles)
+%Return Value: None
+%Local Variables:
+%   First, Rest        - first tile and rest of the tiles on the board
+%   Pip1               - one of the pips on the double tile
+%Algorithm: Print one side of the double tile followed by a space, if tile is not
+%           double, then print 4 spaces.
+%Assistance Received: None 
+%**************************************************************
+drawDoubleTiles([]).
 
+drawDoubleTiles(Board) :-
+    [First | Rest] = Board,
+    isDoubleTile(First),
+    [Pip1 | _ ] = First,
+    write(Pip1), write(" "),
+    drawDoubleTiles(Rest).
+
+drawDoubleTiles(Board) :-
+    [ _ | Rest] = Board,
+    write("    "),
+    drawDoubleTiles(Rest).
+
+
+%**************************************************************
+%Function Name: drawSingleTiles
+%Purpose: To draw single tiles on the board
+%Parameters:
+%   Board   - current board for longana (list of all tiles)
+%Return Value: None
+%Local Variables:
+%   First, Rest        - first tile and rest of the tiles on the board
+%   Pip1, Pip2         - left and right pip respectively of tile First (the one that is being drawn)
+%Algorithm: Print the tile as is with a space at the end. If tile is double just print a bar followed by
+%           a space. This bar will connect the double tiles
+%Assistance Received: None 
+%**************************************************************
+drawSingleTiles([]).
+
+drawSingleTiles(Board) :-
+    [First | Rest] = Board,
+    isDoubleTile(First),
+    write("| "),
+    drawSingleTiles(Rest).
+
+drawSingleTiles(Board) :-
+    [First | Rest] = Board,
+    [Pip1 | [Pip2 | _ ]] = First,
+    write(Pip1), write("-"), write(Pip2), write(" "),
+    drawSingleTiles(Rest).
+
+
+%**************************************************************
+%Function Name: drawBoard
+%Purpose: To draw the board on the screen
+%Parameters:
+%   Board   - current board for longana (list of all tiles)
+%Return Value: None
+%Local Variables: None
+%Algorithm: Draw in order double tiles, then single tiles , then again double tiles.
+%           The code for the 2 predicates used takes care of displaying everything correctly.
+%Assistance Received: None 
+%**************************************************************
+drawBoard(Board) :-
+    write("***********************************************************************************************"), nl,
+    write("***********************************************************************************************"), nl,
+    drawDoubleTiles(Board), nl,
+    drawSingleTiles(Board), nl,
+    drawDoubleTiles(Board), nl,
+    write("***********************************************************************************************"), nl,
+    write("***********************************************************************************************"), nl.
 
 
 
