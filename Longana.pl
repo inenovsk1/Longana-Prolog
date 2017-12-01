@@ -68,6 +68,27 @@ printState(State) :-
 %************************************************************************************************
 
 
+selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
+    humanAvailableTiles(Board, Hand, AvailableTiles),
+    write("This is your current hand: "), write(Hand), nl,
+    write("Please select a tile to play: "),
+    read(TileToPlay),
+    validTile(TileToPlay),
+    containsTile(TileToPlay, Hand),
+    SelectedTile = TileToPlay.
+
+selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
+    humanAvailableTiles(Board, Hand, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    SelectedTile = [],
+    false.
+
+selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
+    write("Wrong tile! Please, try again: "), nl,
+    selectTile(Board, Hand, SkipLastTurn, SelectedTile).
+
+
 humanPlay(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
     canPlayLeft(TileToPlay, Board, _ ),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
@@ -1054,3 +1075,15 @@ removeTile(Tile, Collection, [First | RetVal]) :-
 pipSum(Tile, Sum) :-
     [Pip1 | [Pip2 | _ ]] = Tile,
     Sum is Pip1 + Pip2.
+
+
+containsTile(TileToPlay, []) :-
+    false.
+
+containsTile(TileToPlay, Hand) :-
+    [First | Rest] = Hand,
+    First = TileToPlay.
+
+containsTile(TileToPlay, Hand) :-
+    [First | Rest] = Hand,
+    containsTile(TileToPlay, Rest).
