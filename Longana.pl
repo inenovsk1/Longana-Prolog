@@ -68,6 +68,22 @@ printState(State) :-
 %************************************************************************************************
 
 
+humanPlay(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+    canPlayLeft(TileToPlay, Board, _ ),
+    playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    write("You played tile "), write(TileToPlay), write(". Computer turn:"), nl,
+    [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, NewStock, NewSkip].
+
+humanPlay(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+    canPlayRight(TileToPlay, Board, _ ),
+    isDoubleTile(TileToPlay),
+    playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    write("You played tile "), write(TileToPlay), write(". Computer turn:"), nl,
+    [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, NewStock, NewSkip].
+
+
 
 %**************************************************************
 %Function Name: computerPlay
