@@ -1077,6 +1077,17 @@ pipSum(Tile, Sum) :-
     Sum is Pip1 + Pip2.
 
 
+%**************************************************************
+%Function Name: containsTile
+%Purpose: To determine whether the given hand contains the given tile
+%Parameters:
+%   TileToPlay       - the given tile that we are checking
+%Return Value: true if tile is in hand, false otherwise
+%Local Variables:
+%   First, Rest      - First tile in hand, Rest of the tiles in hand
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
 containsTile(TileToPlay, []) :-
     false.
 
