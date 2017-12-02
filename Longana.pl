@@ -68,25 +68,60 @@ printState(State) :-
 %************************************************************************************************
 
 
+%**************************************************************
+%Function Name: selectTile
+%Purpose: To ask the user for a tile input
+%Parameters:
+%   Board          - current board
+%   Hand           - player's hand
+%   SkipLastTurn   - whether last turn was skipped or not
+%Return Value: Either the selected tile, or if a tile was not available, then an empty list
+%Local Variables:
+%   TileToPlay     - user's input
+%   AvailableTiles - the available tiles to play for the human
+%Algorithm: If a move can be done, keep asking the user until a valid tile is inputted.
+%           Otherwise, return an empty list.
+%Assistance Received: None 
+%**************************************************************
 selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
-    humanAvailableTiles(Board, Hand, AvailableTiles),
+    SkipLastTurn = true,
+    not(hasOptionsWhenSkipped(Hand, Board)),
+    SelectedTile = [].
+
+selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
+    SkipLastTurn = true,
     write("This is your current hand: "), write(Hand), nl,
     write("Please select a tile to play: "),
     read(TileToPlay),
     validTile(TileToPlay),
     containsTile(TileToPlay, Hand),
+    anyAvailableTiles(Hand, Board, AvailableTiles),
+    containsTile(TileToPlay, AvailableTiles),
     SelectedTile = TileToPlay.
 
 selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
-    humanAvailableTiles(Board, Hand, AvailableTiles),
-    length(AvailableTiles, L),
-    L = 0,
-    SelectedTile = [],
-    false.
+    SkipLastTurn = true,
+    nl, write("Wrong tile! Please, try again! "), nl,
+    selectTile(Board, Hand, SkipLastTurn, SelectedTile).
 
 selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
-    write("Wrong tile! Please, try again: "), nl,
+    not(hasNormalOptions(Hand, Board)),
+    SelectedTile = [].
+
+selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
+    write("This is your current hand: "), write(Hand), nl,
+    write("Please select a tile to play: "),
+    read(TileToPlay),
+    validTile(TileToPlay),
+    containsTile(TileToPlay, Hand),
+    humanAvailableTiles(Hand, Board, AvailableTiles),
+    containsTile(TileToPlay, AvailableTiles),
+    SelectedTile = TileToPlay.
+
+selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
+    nl, write("Wrong tile! Please, try again! "), nl,
     selectTile(Board, Hand, SkipLastTurn, SelectedTile).
+
 
 
 humanPlay(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
@@ -570,6 +605,65 @@ anyAvailableTiles(Hand, Board, [Tile | AvailableTiles]) :-
 anyAvailableTiles(Hand, Board, AvailableTiles) :-
     [ _ | Rest] = Hand,
     anyAvailableTiles(Rest, Board, AvailableTiles).
+
+
+%**************************************************************
+%Function Name: hasNormalOptions
+%Purpose: To check if the human can do any moves.
+%Parameters:
+%   Hand    - caller's hand
+%   Board   - the current board
+%Return Value: true if moves are available, false otherwise.
+%Local Variables:
+%   First    - first tile of caller's hand
+%   Rest     - the rest of the caller's hand
+%Algorithm: Linearly check if any tile can be played.
+%Assistance Received: None 
+%**************************************************************
+hasNormalOptions([], Board) :-
+    false.
+
+hasNormalOptions(Hand, Board) :-
+    [First | Rest] = Hand,
+    canPlayLeft(First, Board, _ ).
+
+hasNormalOptions(Hand, Board) :-
+    [First | Rest] = Hand,
+    isDoubleTile(First),
+    canPlayRight(First, Board, _ ).
+
+hasNormalOptions(Hand, Board) :-
+    [First | Rest] = Hand,
+    hasNormalOptions(Rest, Board).
+
+
+%**************************************************************
+%Function Name: hasOptionsWhenSkipped
+%Purpose: To check if the human can do any moves, when other player has skipped turn.
+%Parameters:
+%   Hand    - caller's hand
+%   Board   - the current board
+%Return Value: true if moves are available, false otherwise.
+%Local Variables:
+%   First    - first tile of caller's hand
+%   Rest     - the rest of the caller's hand
+%Algorithm: Linearly check if any tile can be played.
+%Assistance Received: None 
+%**************************************************************
+hasOptionsWhenSkipped([], Board) :-
+    false.
+
+hasOptionsWhenSkipped(Hand, Board) :-
+    [First | Rest] = Hand,
+    canPlayLeft(First, Board, _ ).
+
+hasOptionsWhenSkipped(Hand, Board) :-
+    [First | Rest] = Hand,
+    canPlayRight(First, Board, _ ).
+
+hasOptionsWhenSkipped(Hand, Board) :-
+    [First | Rest] = Hand,
+    hasNormalOptions(Rest, Board).
 
 
 %**************************************************************
