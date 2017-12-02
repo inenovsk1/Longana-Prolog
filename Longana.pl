@@ -8,6 +8,21 @@
 
 
 
+
+welcomeScreen :-
+    write("+---------------------------------------------------------------------------------------------------------------------------+"), nl,
+    write("|  _       __       __                                 __            __                                              __ __  |"), nl,
+    write("| | |     / /___   / /_____ ____   ____ ___   ___     / /_ ____     / /   ____   ____   ____ _ ____ _ ____   ____ _ / // /  |"), nl,
+    write("| | | /| / // _ \\ / // ___// __ \\ / __ `__ \\ / _ \\   / __// __ \\   / /   / __ \\ / __ \\ / __ `// __ `// __ \\ / __ `// // /   |"), nl,
+    write("| | |/ |/ //  __// // /__ / /_/ // / / / / //  __/  / /_ / /_/ /  / /___/ /_/ // / / // /_/ // /_/ // / / // /_/ //_//_/    |") , nl,
+    write("| |__/|__/ \\___//_/ \\___/ \\____//_/ /_/ /_/ \\___/   \\__/ \\____/  /_____/\\____//_/ /_/ \\__, / \\__,_//_/ /_/ \\__,_/(_)(_)     |"), nl,  
+    write("|                                                                                    /____/                                 |"), nl,
+    write("+---------------------------------------------------------------------------------------------------------------------------+"), nl,
+    write("An easy Dominoes game! Ready to play?!"), nl.
+
+
+
+
 %************************************************************************************************
 %************************************ Round Implementation **************************************
 %************************************************************************************************
@@ -48,6 +63,14 @@ printState(State) :-
     write("Humman hand: "), write(HumanHand), nl,
     write("Computer hand: "), write(ComputerHand), nl,
     write("Stock: "), write(Stock), nl, nl.
+
+
+% dummy function to test human play
+placeTurn(Board, Stock, Hand, SkipLastTurn) :-
+    selectTile(Board, Hand, SkipLastTurn, SelectedTile),
+    humanPlay(Board, Stock, Hand, SelectedTile, SkipLastTurn, Ret),
+    [NewBoard | _ ] = Ret,
+    drawBoard(NewBoard).
 
 
 
@@ -97,7 +120,7 @@ selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
     containsTile(TileToPlay, Hand),
     anyAvailableTiles(Hand, Board, AvailableTiles),
     containsTile(TileToPlay, AvailableTiles),
-    SelectedTile = TileToPlay.
+    SelectedTile = TileToPlay. % ***************************SOMETHING BREAKS HERE*** !!
 
 selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
     SkipLastTurn = true,
@@ -124,21 +147,80 @@ selectTile(Board, Hand, SkipLastTurn, SelectedTile) :-
 
 
 
-humanPlay(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+humanPlay(Board, Stock, HumanHand, TileToPlay, SkipLastTurn, Ret) :-
     canPlayLeft(TileToPlay, Board, _ ),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
-    write("You played tile "), write(TileToPlay), write(". Computer turn:"), nl,
+    write("You played tile "), write(TileToPlay), nl,
     [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
-    Ret = [NewBoard, NewStock, NewSkip].
+    removeTile(TileToPlay, HumanHand, NewHumanHand),
+    Ret = [NewBoard, NewStock, NewHumanHand, NewSkip].
 
-humanPlay(Board, Stock, TileToPlay, SkipLastTurn, Ret) :-
+humanPlay(Board, Stock, HumanHand, TileToPlay, SkipLastTurn, Ret) :-
     canPlayRight(TileToPlay, Board, _ ),
     isDoubleTile(TileToPlay),
     playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
-    write("You played tile "), write(TileToPlay), write(". Computer turn:"), nl,
+    write("You played tile "), write(TileToPlay), nl,
     [NewBoard | [NewStock | [NewSkip | _ ]]] = PlayResult,
-    Ret = [NewBoard, NewStock, NewSkip].
+    removeTile(TileToPlay, HumanHand, NewHumanHand),
+    Ret = [NewBoard, NewStock, NewHumanHand, NewSkip].
 
+% Last turn skipped -> try to play left
+humanPlay(Board, Stock, HumanHand, [], SkipLastTurn, Ret) :-
+    write("entering 1"), nl,
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    SkipLastTurn = true,
+    anyAvailableTiles(NewHumanHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, TileToPlay),
+    not(TileToPlay = []),
+    removeTile(TileToPlay, NewHumanHand, HumanHandAfterPlay),
+    playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    write("No available moves! "), nl,
+    write("You drew and played tile "), write(TileToPlay), nl,
+    [NewBoard | [StockAfterPlay | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, StockAfterPlay, HumanHandAfterPlay, NewSkip].
+
+% Last turn skipped -> try to play right
+humanPlay(Board, Stock, HumanHand, [], SkipLastTurn, Ret) :-
+    write("entering 2"), nl,
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    SkipLastTurn = true,
+    anyAvailableTiles(NewHumanHand, Board, AvailableTiles), write(AvailableTiles), nl,
+    highestTile(AvailableTiles, TileToPlay), write(TileToPlay), nl,
+    not(TileToPlay = []), write("Are we still here?!?!?!"), nl,
+    removeTile(TileToPlay, NewHumanHand, HumanHandAfterPlay),
+    playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    write("No available moves! "), nl,
+    write("You drew and played tile "), write(TileToPlay), nl,
+    [NewBoard | [StockAfterPlay | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, StockAfterPlay, HumanHandAfterPlay, NewSkip].
+
+% Last turn NOT skipped -> try to play normally
+humanPlay(Board, Stock, HumanHand, [], SkipLastTurn, Ret) :-
+    write("entering 3"), nl,
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    humanAvailableTiles(NewHumanHand, Board, AvailableTiles),
+    highestTile(AvailableTiles, TileToPlay),
+    not(TileToPlay = []),
+    removeTile(TileToPlay, NewHumanHand, HumanHandAfterPlay),
+    playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
+    write("No available moves! "), nl,
+    write("You drew and played tile "), write(TileToPlay), nl,
+    [NewBoard | [StockAfterPlay | [NewSkip | _ ]]] = PlayResult,
+    Ret = [NewBoard, StockAfterPlay, HumanHandAfterPlay, NewSkip].
+
+humanPlay(Board, Stock, HumanHand, [], SkipLastTurn, Ret) :-
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    humanAvailableTiles(NewHumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L = 0,
+    [Drawn | _ ] = NewHumanHand,
+    write("You have no moves available even after drawing "), write(Drawn), nl,
+    write("Skipping a turn.."), nl,
+    Ret = [Board, NewStock, NewHumanHand, true].
 
 
 %**************************************************************
@@ -178,6 +260,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     anyAvailableTiles(HumanHand, Board, AvailableTiles),
     highestTile(AvailableTiles, RecommendedTile),
     canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    not(RecommendedTile = []),
     write("You can play tile "), write(RecommendedTile), write(" to the left!"), nl,
     Ret = [Board, Stock, HumanHand, false].
 
@@ -188,6 +271,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     highestTile(AvailableTiles, RecommendedTile),
     canPlayRight(RecommendedTile, Board, NeedsReversal),
     isDoubleTile(RecommendedTile),
+    not(RecommendedTile = []),
     write("You can play tile "), write(RecommendedTile), write(" to the right!"), nl,
     Ret = [Board, Stock, HumanHand, false].
 
@@ -201,6 +285,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     anyAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    not(RecommendedTile = []),
     canPlayLeft(RecommendedTile, Board, NeedsReversal),
     writeln("No moves available! Drawing from stock.."),
     write("You drew and can play tile "), write(RecommendedTile), write(" to the left!"), nl,
@@ -216,6 +301,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     anyAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    not(RecommendedTile = []),
     canPlayRight(RecommendedTile, Board, NeedsReversal),
     isDoubleTile(RecommendedTile),
     writeln("No moves available! Drawing from stock.."),
@@ -234,6 +320,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     length(AvailableTilesAfterDraw, Len),
     Len = 0,
     [Drawn | _ ] = NewHumanHand,
+    not(Drawn = []),
     writeln("No moves available! Drawing from stock.."),
     write("You drew tile "), write(Drawn), write(". Skipping a turn due to inability to play!"), nl,
     Ret = [Board, NewStock, NewHumanHand, true].
@@ -243,6 +330,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     humanAvailableTiles(HumanHand, Board, AvailableTiles),
     highestTile(AvailableTiles, RecommendedTile),
     canPlayLeft(RecommendedTile, Board, NeedsReversal),
+    not(RecommendedTile = []),
     write("You can play tile "), write(RecommendedTile), write(" to the left!"), nl,
     Ret = [Board, Stock, HumanHand, false].
 
@@ -252,6 +340,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     highestTile(AvailableTiles, RecommendedTile),
     canPlayRight(RecommendedTile, Board, NeedsReversal),
     isDoubleTile(RecommendedTile),
+    not(RecommendedTile = []),
     write("You can play tile "), write(RecommendedTile), write(" to the right!"), nl,
     Ret = [Board, Stock, HumanHand, false].
 
@@ -264,6 +353,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    not(RecommendedTile = []),
     canPlayLeft(RecommendedTile, Board, NeedsReversal),
     writeln("No moves available! Drawing from stock.."),
     write("You drew and can play tile "), write(RecommendedTile), write(" to the left!"), nl,
@@ -278,6 +368,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     humanAvailableTiles(NewHumanHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, RecommendedTile),
+    not(RecommendedTile = []),
     canPlayRight(RecommendedTile, Board, NeedsReversal),
     isDoubleTile(RecommendedTile),
     writeln("No moves available! Drawing from stock.."),
@@ -295,6 +386,7 @@ computerPlay(Board, Stock, HumanHand, SkipLastTurn, Help, Ret) :-
     length(AvailableTilesAfterDraw, Len),
     Len = 0,
     [Drawn | _ ] = NewHumanHand,
+    not(Drawn = []),
     writeln("No moves available! Drawing from stock.."),
     write("You drew tile "), write(Drawn), write(". Skipping a turn due to inability to play!"), nl,
     Ret = [Board, NewStock, NewHumanHand, true].
@@ -304,6 +396,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     SkipLastTurn = true,
     anyAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTilesAfterDraw, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, ComputerHand, NewComputerHand),
     playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
     write("Computer drew and played tile "), write(TileToPlay),
@@ -315,6 +408,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     SkipLastTurn = true,
     anyAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTilesAfterDraw, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, ComputerHand, NewComputerHand),
     isDoubleTile(TileToPlay),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
@@ -332,6 +426,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     anyAvailableTiles(NewComputerHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, NewComputerHand, ComputerHandAfterDraw),
     playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
     write("Computer drew and played tile "), write(TileToPlay),
@@ -348,6 +443,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     anyAvailableTiles(NewComputerHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, NewComputerHand, ComputerHandAfterDraw),
     isDoubleTile(TileToPlay),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
@@ -367,6 +463,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     length(AvailableTilesAfterDraw, Len),
     Len = 0,
     [Drawn | _ ] = NewComputerHand,
+    not(Drawn = []),
     write("Computer drew tile "), write(Drawn),
     write(" and skips a turn, because it was unable to play. Human turn:"), nl,
     Ret = [Board, NewStock, NewComputerHand, true].
@@ -374,6 +471,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTiles, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, ComputerHand, NewComputerHand),
     playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
     write("Computer played tile "), write(TileToPlay),
@@ -384,6 +482,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
 computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     computerAvailableTiles(ComputerHand, Board, AvailableTiles),
     highestTile(AvailableTiles, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, ComputerHand, NewComputerHand),
     isDoubleTile(TileToPlay),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
@@ -400,6 +499,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     computerAvailableTiles(NewComputerHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, NewComputerHand, ComputerHandAfterDraw),
     playRight(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
     write("Computer drew and played tile "), write(TileToPlay),
@@ -415,6 +515,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     removeFirstTile(Stock, NewStock),
     computerAvailableTiles(NewComputerHand, Board, AvailableTilesAfterDraw),
     highestTile(AvailableTilesAfterDraw, TileToPlay),
+    not(TileToPlay = []),
     removeTile(TileToPlay, NewComputerHand, ComputerHandAfterDraw),
     isDoubleTile(TileToPlay),
     playLeft(Board, Stock, TileToPlay, SkipLastTurn, PlayResult),
@@ -433,6 +534,7 @@ computerPlay(Board, Stock, ComputerHand, SkipLastTurn, Help, Ret) :-
     length(AvailableTilesAfterDraw, Len),
     Len = 0,
     [Drawn | _ ] = NewComputerHand,
+    not(Drawn = []),
     write("Computer drew tile "), write(Drawn),
     write(" and skips a turn, because it was unable to play. Human turn:"), nl,
     Ret = [Board, NewStock, NewComputerHand, true].
@@ -663,7 +765,7 @@ hasOptionsWhenSkipped(Hand, Board) :-
 
 hasOptionsWhenSkipped(Hand, Board) :-
     [First | Rest] = Hand,
-    hasNormalOptions(Rest, Board).
+    hasOptionsWhenSkipped(Rest, Board).
 
 
 %**************************************************************
