@@ -131,12 +131,13 @@ placeTurn(Board, Stock, Hand, SkipLastTurn) :-
 %   Board          - current board
 %   Hand           - player's hand
 %   SkipLastTurn   - whether last turn was skipped or not
-%Return Value: Either the selected tile, or if a tile was not available, then an empty list
+%Return Value:
+%   Either the selected tile, or if a tile was not available, then an empty list
+%   This function also returns the desired direction to which the tile should be played
 %Local Variables:
-%   TileToPlay     - user's input
 %   AvailableTiles - the available tiles to play for the human
 %Algorithm: If a move can be done, keep asking the user until a valid tile is inputted.
-%           Otherwise, return an empty list.
+%           Otherwise, return an empty list for SelectedTile and an empty string for Direction
 %Assistance Received: None 
 %**************************************************************
 selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
@@ -182,7 +183,16 @@ selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
     selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction).
 
 
-
+%**************************************************************
+%Function Name: validateDirection
+%Purpose: To validate that the user did not input garbage value for direction
+%Parameters:
+%   Direction    - 0 for left, 1 for right
+%Return Value: true if Direction is 0 or 1, false otherwise
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
 validateDirection(Direction) :-
     Direction = 0.
 
@@ -190,7 +200,30 @@ validateDirection(Direction) :-
     Direction = 1.
 
 
-
+%**************************************************************
+%Function Name: humanPlay
+%Purpose: To validate the human's input and then play it
+%Parameters:
+%   Board           - The current board
+%   Stock           - The current stock
+%   HumanHand       - Human's hand
+%   TileToPlay      - Tile selected by the human to be played
+%   Direction       - The direction at which the tile should be played
+%   SkipLastTurn    - Whether last turn was skipped or not
+%Return Value:
+%   A list of: new baord, new stock, new human hand, whether turn was skipped or not
+%Local Variables:
+%   AvailableTiles           - the available tiles during this turn
+%   AvailableTilesAfterDraw  - the available tiles after drawing from the stock
+%   L                        - length of the available tiles
+%   NewStock                 - Stock after a tile has been drawn once
+%   NewBoard                 - Board after a tile has been placed
+%   Drawn                    - the drawn tile from the stock, if a tile was drawn
+%Algorithm:
+%   Sequentially check each human move (according to Longana rules) and execute the
+%   first possible move!
+%Assistance Received: None
+%**************************************************************
 humanPlay(Board, Stock, HumanHand, TileToPlay, Direction, SkipLastTurn, Ret) :-
     SkipLastTurn = true,
     Direction = 0,
