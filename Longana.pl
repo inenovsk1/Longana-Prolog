@@ -40,58 +40,65 @@ welcomeScreen :-
 %Assistance Received: None 
 %**************************************************************
 initializeRound(Engine, Ret) :-
-    Board = [],
     createStock(Stock),
     dealTilesAtRoundBeginning(0, 8, Stock, [], [], State),
-    [HumanHand | [ComputerHand | [Stock | _ ]]] = State,
+    [HumanHand | [ComputerHand | [StockAfterDeal | _ ]]] = State,
+    printState(HumanHand, ComputerHand, StockAfterDeal),
     %ask for serialization here
-    placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret).
+    placeEngine([], StockAfterDeal, HumanHand, ComputerHand, Engine, Ret),
+    [Board | _ ] = Ret,
+    drawBoard(Board).
 
 
 
+
+%returns 1 means next computer, 0 means next human
 % Human has engine
 placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
-    SkipLastTurn = false,
     EngineTile = [Engine, Engine],
     containsTile(EngineTile, HumanHand),
-    playLeft(Board, Stock, EngineTile, SkipLastTurn, Ret),
-    %[Board, Stock, true]
-    %FIX RETURN VALUE
-    [Board | [Stock | _ ] = Ret.
+    Board = [EngineTile],
+    removeTile(EngineTile, HumanHand, NewHumanHand),
+    Ret = [NewBoard, Stock, NewHumanHand, ComputerHand, false, 1].
 
 % Computer has engine
 placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
-    SkipLastTurn = false,
     EngineTile = [Engine, Engine],
-    containsTile(EngineTile, ComputerHand).
-    %do playLeft with computer..
+    containsTile(EngineTile, ComputerHand),
+    NewBoard = [EngineTile],
+    removeTile(EngineTile, ComputerHand, NewComputerHand),
+    Ret = [NewBoard, Stock, HumanHand, NewComputerHand, false, 0].
 
 % Draw one tile each
 placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
-    SkipLastTurn = false.
-    %dealtile
+    dealTile(Stock, HumanHand, NewHumanHand),
+    removeFirstTile(Stock, NewStock),
+    dealTile(NewStock, ComputerHand, NewComputerHand),
+    removeFirstTile(NewStock, StockAfterDeal),
+    placeEngine(Board, StockAfterDeal, NewHumanHand, NewComputerHand, Engine, Ret).
 
 
-playRound(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, NextPlayer) :-
+
+%roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, NextPlayer, EndResults) :-
     
 
+
+
+% endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips) :-
+%     asd
 
 
 %**************************************************************
 %Function Name: printState
 %Purpose: To print the current state of Longana, i.e. human hand, computer hand, stock
 %Parameters:
-%   State    - a list of human hand, computer hand, and stock
+%   human hand, computer hand, and stock
 %Return Value: None
-%Local Variables:
-%   HummanHand    - Current human hand
-%   ComputerHand  - Current computer hand
-%   Stock         - Current stock
+%Local Variables: None
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-printState(State) :-
-    [HumanHand | [ComputerHand | [Stock | _ ]]] = State,
+printState(HumanHand, ComputerHand, Stock) :-
     write("Current Longana State:"), nl,
     write("Humman hand: "), write(HumanHand), nl,
     write("Computer hand: "), write(ComputerHand), nl,
@@ -1083,7 +1090,7 @@ drawBoard(Board) :-
     drawSingleTiles(Board), nl,
     drawDoubleTiles(Board), nl,
     write("***********************************************************************************************"), nl,
-    write("***********************************************************************************************"), nl.
+    write("***********************************************************************************************"), nl, nl.
 
 
 
