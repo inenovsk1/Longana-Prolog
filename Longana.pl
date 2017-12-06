@@ -57,8 +57,9 @@ initializeRound(Engine, Ret) :-
 placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
     EngineTile = [Engine, Engine],
     containsTile(EngineTile, HumanHand),
-    Board = [EngineTile],
+    NewBoard = [EngineTile],
     removeTile(EngineTile, HumanHand, NewHumanHand),
+    write("Human placed engine on board!"), nl,
     Ret = [NewBoard, Stock, NewHumanHand, ComputerHand, false, 1].
 
 % Computer has engine
@@ -67,25 +68,31 @@ placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
     containsTile(EngineTile, ComputerHand),
     NewBoard = [EngineTile],
     removeTile(EngineTile, ComputerHand, NewComputerHand),
+    write("Computer placed engine on board!"), nl,
     Ret = [NewBoard, Stock, HumanHand, NewComputerHand, false, 0].
 
 % Draw one tile each
 placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
+    write("No one had the engine! Each player is drawing a tile from the stock"), nl,
     dealTile(Stock, HumanHand, NewHumanHand),
     removeFirstTile(Stock, NewStock),
+    [HumanDrawn | _ ] = NewHumanHand,
+    write("Human got tile "), write(HumanDrawn), nl,
     dealTile(NewStock, ComputerHand, NewComputerHand),
     removeFirstTile(NewStock, StockAfterDeal),
+    [ComputerDrawn | _ ] = NewComputerHand,
+    write("Computer got tile "), write(ComputerDrawn), nl,
     placeEngine(Board, StockAfterDeal, NewHumanHand, NewComputerHand, Engine, Ret).
 
 
 
-%roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, NextPlayer, EndResults) :-
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, NextPlayer, EndResults) :-
     
 
 
 
-% endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips) :-
-%     asd
+endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips) :-
+    asd
 
 
 %**************************************************************
@@ -100,7 +107,7 @@ placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
 %**************************************************************
 printState(HumanHand, ComputerHand, Stock) :-
     write("Current Longana State:"), nl,
-    write("Humman hand: "), write(HumanHand), nl,
+    write("Human hand: "), write(HumanHand), nl,
     write("Computer hand: "), write(ComputerHand), nl,
     write("Stock: "), write(Stock), nl, nl.
 
