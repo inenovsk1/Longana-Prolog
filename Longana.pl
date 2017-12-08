@@ -30,6 +30,127 @@ splashScreen :-
 
 
 
+loadGameFromFile() :-
+    promptToLoadFromFile(Ans).
+
+
+
+
+promptToLoadFromFile(Ans) :-
+    write("Would you like to load a game from a file(1) or start a new one(0) ? "),
+    read(X),
+    validatePromptFromFile(X),
+    Ans = X.
+
+validatePromptFromFile(Input) :-
+    Input = 0.
+
+validatePromptFromFile(Input) :-
+    Input = 1.
+
+
+
+
+readFile(FileName, Contents) :-
+    working_directory(Cur, 'C:\\ivo\\programming\\Fall17\\OPL\\prolog\\Longana-Prolog'),
+    open(FileName, read, Stream),
+    read(Stream, Contents),
+    close(Stream).
+
+
+
+
+parseFile(Contents, TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board,
+          Stock, SkipLastTurn, NextPlayer) :-
+    length(Contents, L),
+    L = 9,     % this means that no nextPlayer was given
+    [TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board, Stock,
+    SkipLastTurn | _ ] = Contents,
+    NextPlayer = -1.
+
+parseFile(Contents, TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board,
+          Stock, SkipLastTurn, NextPlayer) :-
+    length(Contents, L),
+    L = 10,     % this means that no nextPlayer was given
+    [TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board, Stock,
+    SkipLastTurn, NextPlayer | _ ] = Contents.
+
+
+
+
+
+determineEngineFromRound(0, 6).
+determineEngineFromRound(1, 5).
+determineEngineFromRound(2, 4).
+determineEngineFromRound(3, 3).
+determineEngineFromRound(4, 2).
+determineEngineFromRound(5, 1).
+determineEngineFromRound(6, 0).
+
+determineEngineFromRound(RoundNo, Engine) :-
+    RoundNo >= 7,
+    NewRound is RoundNo mod 7,
+    determineEngineFromRound(NewRound, Engine).
+
+
+
+initiateGameFromFile(File) :-
+    readFile(File, Contents),
+    parseFile(Contents, TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board, Stock, SkipLastTurn, NextPlayer),
+    determineEngineFromRound(RoundNo, Engine),
+    NextPlayer = 'computer',
+    NewNextPlayer = 1,
+    determineBoardFromFile(Board, ParsedBoard),
+    %placeEngine([], Stock, HumanHand, ComputerHand, Engine, Ret),
+    %[BoardAfterEngine | [StockAfterEngine | [HumanHandAfterEngine | [ComputerHandAfterEngine | [SkipAfterEngine | [NewNextPlayer | _ ]]]]]] = Ret,
+    roundLoop(ParsedBoard, Stock, HumanHand, ComputerHand, SkipLastTurn, 0, NewNextPlayer, false, RoundResult),
+    continueTournament(RoundResult, HumanScore, ComputerScore, TGoal, Engine).
+
+initiateGameFromFile(File) :-
+    readFile(File, Contents),
+    parseFile(Contents, TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board, Stock, SkipLastTurn, NextPlayer),
+    determineEngineFromRound(RoundNo, Engine),
+    NextPlayer = 'human',
+    NewNextPlayer = 0,
+    determineBoardFromFile(Board, ParsedBoard),
+    %placeEngine([], Stock, HumanHand, ComputerHand, Engine, Ret),
+    %[BoardAfterEngine | [StockAfterEngine | [HumanHandAfterEngine | [ComputerHandAfterEngine | [SkipAfterEngine | [NewNextPlayer | _ ]]]]]] = Ret,
+    roundLoop(ParsedBoard, Stock, HumanHand, ComputerHand, SkipLastTurn, 0, NewNextPlayer, true, RoundResult),
+    continueTournament(RoundResult, HumanScore, ComputerScore, TGoal, Engine).
+
+initiateGameFromFile(File) :-
+    readFile(File, Contents),
+    parseFile(Contents, TGoal, RoundNo, ComputerHand, ComputerScore, HumanHand, HumanScore, Board, Stock, SkipLastTurn, NextPlayer),
+    determineEngineFromRound(RoundNo, Engine),
+    NextPlayer = -1,
+    %determineBoardFromFile(Board, ParsedBoard),
+    placeEngine([], Stock, HumanHand, ComputerHand, Engine, Ret),
+    [BoardAfterEngine | [StockAfterEngine | [HumanHandAfterEngine | [ComputerHandAfterEngine | [SkipAfterEngine | [NewNextPlayer | _ ]]]]]] = Ret,
+    roundLoop(BoardAfterEngine, StockAfterEngine, HumanHandAfterEngine, ComputerHandAfterEngine,
+              SkipAfterEngine, 0, NewNextPlayer, true, RoundResult),
+    continueTournament(RoundResult, HumanScore, ComputerScore, TGoal, Engine).
+
+
+
+
+
+
+
+
+determineBoardFromFile([], []).
+
+determineBoardFromFile(Board, [First | Res]) :-
+    [First | Rest] = Board,
+    First \= l,
+    First \= r,
+    determineBoardFromFile(Rest, Res).
+
+determineBoardFromFile(Board, ParsedBoard) :-
+    [First | Rest] = Board,
+    determineBoardFromFile(Rest, ParsedBoard).
+
+
+
 
 %************************************************************************************************
 %*********************************** Tournament Implementation **********************************
@@ -48,6 +169,13 @@ splashScreen :-
 %**************************************************************
 longana() :-
     splashScreen(),
+    promptToLoadFromFile(Ans),
+    Ans = 1,
+    write("Please enter file name: "),
+    read(File),
+    initiateGameFromFile(File).
+
+longana() :-
     promptTournamentScore(TGoal),
     tournamentLoop(TGoal, 0, 0, 6).
 
@@ -93,49 +221,50 @@ validateTGoal(TGoal) :-
 %**************************************************************
 tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
     startNewRound(Engine, RoundResult),
+    continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engine).
+
+
+
+continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engine) :-
     [Winner | [Score | _ ]] = RoundResult,
     Winner = 0,
     NewHumanScore is HumanScore + Score,
     endTournamentGoalsMet(NewHumanScore, ComputerScore, TournamentGoal).
 
-tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
-    startNewRound(Engine, RoundResult),
+continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engine) :-
     [Winner | [Score | _ ]] = RoundResult,
     Winner = 1,
     NewComputerScore is ComputerScore + Score,
     endTournamentGoalsMet(HumanScore, NewComputerScore, TournamentGoal).
 
-tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
-    startNewRound(Engine, RoundResult),
+continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engine) :-
     [Winner | [Score | _ ]] = RoundResult,
     Winner = 0,
     NewHumanScore is HumanScore + Score,
-    changeEngine(Engine, NewEngine),
-    write(Current score:), nl,
+    changeEngine(Engine, NewEngine), write(NewEngine), nl,
+    nl, write("Current score:"), nl,
     write("Human: "), write(NewHumanScore), nl,
-    write("Computer: "), write(ComputerScore), nl,
+    write("Computer: "), write(ComputerScore), nl, nl,
     tournamentLoop(TournamentGoal, NewHumanScore, ComputerScore, NewEngine).
 
-tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
-    startNewRound(Engine, RoundResult),
+continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engine) :-
     [Winner | [Score | _ ]] = RoundResult,
     Winner = 1,
     NewComputerScore is ComputerScore + Score,
-    changeEngine(Engine, NewEngine),
-    write(Current score:), nl,
+    changeEngine(Engine, NewEngine), write(NewEngine), nl,
+    nl, write("Current score:"), nl,
     write("Human: "), write(HumanScore), nl,
-    write("Computer: "), write(NewComputerScore), nl,
+    write("Computer: "), write(NewComputerScore), nl, nl,
     tournamentLoop(TournamentGoal, HumanScore, NewComputerScore, NewEngine).
 
-tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
-    startNewRound(Engine, RoundResult),
+continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engine) :-
     [Winner | [Score | _ ]] = RoundResult,
     Winner = -1,
     write("Stalemate! No one wins this round! Better luck next time!"), nl,
-    changeEngine(Engine, NewEngine),
-    write(Current score:), nl,
+    changeEngine(Engine, NewEngine), write(NewEngine), nl,
+    nl, write("Current score:"), nl,
     write("Human: "), write(HumanScore), nl,
-    write("Computer: "), write(ComputerScore), nl,
+    write("Computer: "), write(ComputerScore), nl, nl,
     tournamentLoop(TournamentGoal, HumanScore, ComputerScore, NewEngine).
 
 
@@ -210,9 +339,9 @@ changeEngine(Engine, NewEngine) :-
 %Assistance Received: None 
 %**************************************************************
 startNewRound(Engine, Ret) :-
-    initializeRound(6, InitializationResult),
+    initializeRound(Engine, InitializationResult),
     [Board | [Stock | [HumanHand | [ComputerHand | [SkipLastTurn | [NextPlayer | _]]]]]] = InitializationResult,
-    roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, 0, NextPlayer, true, Ret).
+    roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, 0, NextPlayer, 1, Ret).
 
 
 
@@ -323,7 +452,7 @@ placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
 
 % help mode and can play tiles
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     % make a check if something is available
     SkipLastTurn = true,
@@ -332,7 +461,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     anyAvailableTiles(TestHumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L \= 0,
-    Stock \= [],
+    %Stock \= [],
     Help = 1,
     computerPlay(Board, Stock, HumanHand, SkipLastTurn, true, HelpRet),
     [BoardAfterHelp | [StockAfterHelp | [HumanHandAfterHelp | [SkipAfterHelp | _ ]]]] = HelpRet,
@@ -346,7 +475,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
 
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     % make a check if something is available
     SkipLastTurn = false,
@@ -355,7 +484,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     humanAvailableTiles(TestHumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L \= 0,
-    Stock \= [],
+    %Stock \= [],
     Help = 1,
     computerPlay(Board, Stock, HumanHand, SkipLastTurn, true, HelpRet),
     [BoardAfterHelp | [StockAfterHelp | [HumanHandAfterHelp | [SkipAfterHelp | _ ]]]] = HelpRet,
@@ -370,7 +499,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
 
 % no help mode but can play tiles
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     % make a check if something is available
     SkipLastTurn = true,
@@ -379,7 +508,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     anyAvailableTiles(TestHumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L \= 0,
-    Stock \= [],
+    %Stock \= [],
     Help = 0,
     selectTile(Board, HumanHand, SkipLastTurn, SelectedTile, Direction),
     humanPlay(Board, Stock, HumanHand, SelectedTile, Direction, SkipLastTurn, false, Ret),
@@ -390,7 +519,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
 
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     % make a check if something is available
     SkipLastTurn = false,
@@ -399,7 +528,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     humanAvailableTiles(TestHumanHand, Board, AvailableTiles),
     length(AvailableTiles, L),
     L \= 0,
-    Stock \= [],
+    %Stock \= [],
     Help = 0,
     selectTile(Board, HumanHand, SkipLastTurn, SelectedTile, Direction),
     humanPlay(Board, Stock, HumanHand, SelectedTile, Direction, SkipLastTurn, false, Ret),
@@ -411,8 +540,9 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
 
 % last turn was skipped, therefore continue the game
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
+    Stock \= [],
     dealTile(Stock, HumanHand, NewHumanHand),
     removeFirstTile(Stock, NewStock),
     NewAmountOfSkips is AmountOfSkips + 1,
@@ -425,7 +555,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
 
 % Human turn
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     selectTile(Board, HumanHand, SkipLastTurn, SelectedTile, Direction),
     humanPlay(Board, Stock, HumanHand, SelectedTile, Direction, SkipLastTurn, false, Ret),
@@ -437,7 +567,7 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
 
 % Computer turn
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
-    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    not(endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 1,
     computerPlay(Board, Stock, ComputerHand, SkipLastTurn, false, Ret),
     [NewBoard | [NewStock | [NewComputerHand | [NewSkip | _ ]]]] = Ret,
@@ -469,6 +599,19 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
+% human wins, because emptied hand first
+determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon) :-
+    HumanHand = [],
+    handSum(ComputerHand, 0, PointsWon),
+    Winner = 0,
+    write("Human emptied hand first, therefore human wins!"), nl.
+
+% computer wins, because emptied hand first
+determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon) :-
+    ComputerHand = [],
+    handSum(HumanHand, 0, PointsWon),
+    Winner = 1,
+    write("Computer emptied hand first, therefore computer wins!"), nl.
 
 % stalemate in which human has more pips and therefore computer wins
 determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon) :-
@@ -503,20 +646,6 @@ determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon
     Winner = -1,
     write("Amount of skips >= 2 pip counts in each hand are equal, therefore stalemate! No one wins this round.."), nl.
 
-% human wins, because emptied hand first
-determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon) :-
-    HumanHand = [],
-    handSum(ComputerHand, 0, PointsWon),
-    Winner = 0,
-    write("Human emptied hand first, therefore human wins!"), nl.
-
-% computer wins, because emptied hand first
-determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon) :-
-    ComputerHand = [],
-    handSum(HumanHand, 0, PointsWon),
-    Winner = 1,
-    write("Computer emptied hand first, therefore computer wins!"), nl.
-
 
 
 %**************************************************************
@@ -529,16 +658,17 @@ determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips) :-
+endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips) :-
     length(HumanHand, L),
     L = 0.
 
-endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips) :-
+endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips) :-
     length(ComputerHand, L),
     L = 0.
 
-endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips) :-
-    AmountOfSkips >= 2.
+endOfRoundConditionsMet(Stock, HumanHand, ComputerHand, AmountOfSkips) :-
+    AmountOfSkips >= 2,
+    Stock = [].
 
 
 %**************************************************************
