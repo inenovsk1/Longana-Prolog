@@ -126,6 +126,8 @@ initiateGameFromFile(File) :-
     %determineBoardFromFile(Board, ParsedBoard),
     placeEngine([], Stock, HumanHand, ComputerHand, Engine, Ret),
     [BoardAfterEngine | [StockAfterEngine | [HumanHandAfterEngine | [ComputerHandAfterEngine | [SkipAfterEngine | [NewNextPlayer | _ ]]]]]] = Ret,
+    drawBoard(BoardAfterEngine),
+    printState(HumanHandAfterEngine, ComputerHandAfterEngine, StockAfterEngine),
     roundLoop(BoardAfterEngine, StockAfterEngine, HumanHandAfterEngine, ComputerHandAfterEngine,
               SkipAfterEngine, 0, NewNextPlayer, true, RoundResult),
     continueTournament(RoundResult, HumanScore, ComputerScore, TGoal, Engine).
@@ -241,7 +243,7 @@ continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engin
     [Winner | [Score | _ ]] = RoundResult,
     Winner = 0,
     NewHumanScore is HumanScore + Score,
-    changeEngine(Engine, NewEngine), write(NewEngine), nl,
+    changeEngine(Engine, NewEngine),
     nl, write("Current score:"), nl,
     write("Human: "), write(NewHumanScore), nl,
     write("Computer: "), write(ComputerScore), nl, nl,
@@ -251,7 +253,7 @@ continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engin
     [Winner | [Score | _ ]] = RoundResult,
     Winner = 1,
     NewComputerScore is ComputerScore + Score,
-    changeEngine(Engine, NewEngine), write(NewEngine), nl,
+    changeEngine(Engine, NewEngine),
     nl, write("Current score:"), nl,
     write("Human: "), write(HumanScore), nl,
     write("Computer: "), write(NewComputerScore), nl, nl,
@@ -261,7 +263,7 @@ continueTournament(RoundResult, HumanScore, ComputerScore, TournamentGoal, Engin
     [Winner | [Score | _ ]] = RoundResult,
     Winner = -1,
     write("Stalemate! No one wins this round! Better luck next time!"), nl,
-    changeEngine(Engine, NewEngine), write(NewEngine), nl,
+    changeEngine(Engine, NewEngine),
     nl, write("Current score:"), nl,
     write("Human: "), write(HumanScore), nl,
     write("Computer: "), write(ComputerScore), nl, nl,
@@ -574,8 +576,8 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     increaseAmountOfSkips(NewSkip, AmountOfSkips, NewAmountOfSkips),
     drawBoard(NewBoard),
     printState(HumanHand, NewComputerHand, NewStock),
-    askForHelp(Help),
-    roundLoop(NewBoard, NewStock, HumanHand, NewComputerHand, NewSkip, NewAmountOfSkips, 0, Help, RoundResult).
+    askForHelp(HelpModeHuman),
+    roundLoop(NewBoard, NewStock, HumanHand, NewComputerHand, NewSkip, NewAmountOfSkips, 0, HelpModeHuman, RoundResult).
 
 % Announce winners and put the winner score and winner player in RoundResult
 roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
