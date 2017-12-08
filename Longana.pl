@@ -9,7 +9,7 @@
 
 
 
-welcomeScreen :-
+splashScreen :-
     write("+---------------------------------------------------------------------------------------------------------------------------+"), nl,
     write("|  _       __       __                                 __            __                                              __ __  |"), nl,
     write("| | |     / /___   / /_____ ____   ____ ___   ___     / /_ ____     / /   ____   ____   ____ _ ____ _ ____   ____ _ / // /  |"), nl,
@@ -19,6 +19,171 @@ welcomeScreen :-
     write("|                                                                                    /____/                                 |"), nl,
     write("+---------------------------------------------------------------------------------------------------------------------------+"), nl,
     write("An easy Dominoes game! Ready to play?!"), nl.
+
+
+
+
+%************************************************************************************************
+%********************************* Serialization Implementation *********************************
+%************************************************************************************************
+
+
+
+
+
+%************************************************************************************************
+%*********************************** Tournament Implementation **********************************
+%************************************************************************************************
+
+
+%**************************************************************
+%Function Name: longana
+%Purpose: Main Longana entry. Perform the whole game with this predicate
+%Parameters: None
+%Return Value: None
+%Local Variables:
+%   TGoal      - The goal of the tournament
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+longana() :-
+    splashScreen(),
+    promptTournamentScore(TGoal),
+    tournamentLoop(TGoal, 0, 0, 6).
+
+
+%**************************************************************
+%Function Name: promptTournamentScore
+%Purpose: To ask the user for tournament goal
+%Parameters: None
+%Return Value: The inputted goal by the user
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+promptTournamentScore(TGoal) :-
+    write("Please enter tournament goal for Longana: "),
+    read(TGoal),
+    validateTGoal(TGoal).
+
+promptTournamentScore(TGoal) :-
+    write("Tournament goal cannot be a negative number!"), nl,
+    promptTournamentScore(TGoal).
+
+validateTGoal(TGoal) :-
+    TGoal > 0.
+
+
+
+%**************************************************************
+%Function Name: tournamentLoop
+%Purpose: To keep the tournament alive until someone wins
+%Parameters:
+%   TournamentGoal
+%   HumanScore
+%   ComputerScore
+%   Engine
+%Return Value: None
+%Local Variables:
+%   NewHumanScore        - human score after a round win
+%   NewComputerScore     - computer score after a round win
+%   NewEngine            - updated engine for next round
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
+    startNewRound(Engine, RoundResult),
+    [Winner | [Score | _ ]] = RoundResult,
+    Winner = 0,
+    NewHumanScore is HumanScore + Score,
+    endTournamentGoalsMet(NewHumanScore, ComputerScore, TournamentGoal).
+
+tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
+    startNewRound(Engine, RoundResult),
+    [Winner | [Score | _ ]] = RoundResult,
+    Winner = 1,
+    NewComputerScore is ComputerScore + Score,
+    endTournamentGoalsMet(HumanScore, NewComputerScore, TournamentGoal).
+
+tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
+    startNewRound(Engine, RoundResult),
+    [Winner | [Score | _ ]] = RoundResult,
+    Winner = 0,
+    NewHumanScore is HumanScore + Score,
+    changeEngine(Engine, NewEngine),
+    write(Current score:), nl,
+    write("Human: "), write(NewHumanScore), nl,
+    write("Computer: "), write(ComputerScore), nl,
+    tournamentLoop(TournamentGoal, NewHumanScore, ComputerScore, NewEngine).
+
+tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
+    startNewRound(Engine, RoundResult),
+    [Winner | [Score | _ ]] = RoundResult,
+    Winner = 1,
+    NewComputerScore is ComputerScore + Score,
+    changeEngine(Engine, NewEngine),
+    write(Current score:), nl,
+    write("Human: "), write(HumanScore), nl,
+    write("Computer: "), write(NewComputerScore), nl,
+    tournamentLoop(TournamentGoal, HumanScore, NewComputerScore, NewEngine).
+
+tournamentLoop(TournamentGoal, HumanScore, ComputerScore, Engine) :-
+    startNewRound(Engine, RoundResult),
+    [Winner | [Score | _ ]] = RoundResult,
+    Winner = -1,
+    write("Stalemate! No one wins this round! Better luck next time!"), nl,
+    changeEngine(Engine, NewEngine),
+    write(Current score:), nl,
+    write("Human: "), write(HumanScore), nl,
+    write("Computer: "), write(ComputerScore), nl,
+    tournamentLoop(TournamentGoal, HumanScore, ComputerScore, NewEngine).
+
+
+
+%**************************************************************
+%Function Name: endTournamentGoalsMet
+%Purpose: To determine if the tournament is over and to announce the winner
+%Parameters:
+%   HumanScore
+%   ComputerScore
+%   TournamentGoal
+%Return Value: None
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+endTournamentGoalsMet(HumanScore, ComputerScore, TournamentGoal) :-
+    HumanScore >= TournamentGoal,
+    write("Final score:"), nl,
+    write("Human: "), write(HumanScore), nl,
+    write("Computer: "), write(ComputerScore), nl,
+    write("Human wins the tournament!"), nl.
+
+endTournamentGoalsMet(HumanScore, ComputerScore, TournamentGoal) :-
+    ComputerScore >= TournamentGoal,
+    write("Final score:"), nl,
+    write("Human: "), write(HumanScore), nl,
+    write("Computer: "), write(ComputerScore), nl,
+    write("Computer wins the tournament!"), nl.
+
+
+
+%**************************************************************
+%Function Name: chageEngine
+%Purpose: To properly update the engine for the next round
+%Parameters:
+%   HumanScore
+%   ComputerScore
+%   TournamentGoal
+%Return Value: None
+%Local Variables: None
+%Algorithm: None
+%Assistance Received: None 
+%**************************************************************
+changeEngine(0, 6).
+
+changeEngine(Engine, NewEngine) :-
+    NewEngine is Engine - 1.
 
 
 
@@ -47,7 +212,7 @@ welcomeScreen :-
 startNewRound(Engine, Ret) :-
     initializeRound(6, InitializationResult),
     [Board | [Stock | [HumanHand | [ComputerHand | [SkipLastTurn | [NextPlayer | _]]]]]] = InitializationResult,
-    roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, 0, NextPlayer, Ret).
+    roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, 0, NextPlayer, true, Ret).
 
 
 
@@ -156,8 +321,8 @@ placeEngine(Board, Stock, HumanHand, ComputerHand, Engine, Ret) :-
 %Assistance Received: None 
 %**************************************************************
 
-% Human asking for help
-roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, RoundResult) :-
+% help mode and can play tiles
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
     not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     % make a check if something is available
@@ -168,7 +333,6 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     length(AvailableTiles, L),
     L \= 0,
     Stock \= [],
-    askForHelp(Help),
     Help = 1,
     computerPlay(Board, Stock, HumanHand, SkipLastTurn, true, HelpRet),
     [BoardAfterHelp | [StockAfterHelp | [HumanHandAfterHelp | [SkipAfterHelp | _ ]]]] = HelpRet,
@@ -179,9 +343,9 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     increaseAmountOfSkips(NewSkip, AmountOfSkips, NewAmountOfSkips),
     drawBoard(NewBoard),
     printState(NewHumanHand, ComputerHand, NewStock),
-    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, RoundResult).
+    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
 
-roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, RoundResult) :-
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
     not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     % make a check if something is available
@@ -192,7 +356,6 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     length(AvailableTiles, L),
     L \= 0,
     Stock \= [],
-    askForHelp(Help),
     Help = 1,
     computerPlay(Board, Stock, HumanHand, SkipLastTurn, true, HelpRet),
     [BoardAfterHelp | [StockAfterHelp | [HumanHandAfterHelp | [SkipAfterHelp | _ ]]]] = HelpRet,
@@ -203,10 +366,51 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     increaseAmountOfSkips(NewSkip, AmountOfSkips, NewAmountOfSkips),
     drawBoard(NewBoard),
     printState(NewHumanHand, ComputerHand, NewStock),
-    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, RoundResult).
+    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
+
+% no help mode but can play tiles
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
+    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    NextPlayer = 0,
+    % make a check if something is available
+    SkipLastTurn = true,
+    [TestDrawn | _ ] = Stock,
+    TestHumanHand = [TestDrawn | HumanHand],
+    anyAvailableTiles(TestHumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L \= 0,
+    Stock \= [],
+    Help = 0,
+    selectTile(Board, HumanHand, SkipLastTurn, SelectedTile, Direction),
+    humanPlay(Board, Stock, HumanHand, SelectedTile, Direction, SkipLastTurn, false, Ret),
+    [NewBoard | [NewStock | [NewHumanHand | [NewSkip | _ ]]]] = Ret,
+    increaseAmountOfSkips(NewSkip, AmountOfSkips, NewAmountOfSkips),
+    drawBoard(NewBoard),
+    printState(NewHumanHand, ComputerHand, NewStock),
+    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
+
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
+    not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
+    NextPlayer = 0,
+    % make a check if something is available
+    SkipLastTurn = false,
+    [TestDrawn | _ ] = Stock,
+    TestHumanHand = [TestDrawn | HumanHand],
+    humanAvailableTiles(TestHumanHand, Board, AvailableTiles),
+    length(AvailableTiles, L),
+    L \= 0,
+    Stock \= [],
+    Help = 0,
+    selectTile(Board, HumanHand, SkipLastTurn, SelectedTile, Direction),
+    humanPlay(Board, Stock, HumanHand, SelectedTile, Direction, SkipLastTurn, false, Ret),
+    [NewBoard | [NewStock | [NewHumanHand | [NewSkip | _ ]]]] = Ret,
+    increaseAmountOfSkips(NewSkip, AmountOfSkips, NewAmountOfSkips),
+    drawBoard(NewBoard),
+    printState(NewHumanHand, ComputerHand, NewStock),
+    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
 
 % last turn was skipped, therefore continue the game
-roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, RoundResult) :-
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
     not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     dealTile(Stock, HumanHand, NewHumanHand),
@@ -217,11 +421,10 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     write("Drew tile "), write(Drawn), write(". Skipping a turn due to no moves available!"), nl, nl,
     drawBoard(Board),
     printState(NewHumanHand, ComputerHand, NewStock),
-    roundLoop(Board, NewStock, NewHumanHand, ComputerHand, true, NewAmountOfSkips, 1, RoundResult).
-
+    roundLoop(Board, NewStock, NewHumanHand, ComputerHand, true, NewAmountOfSkips, 1, _, RoundResult).
 
 % Human turn
-roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, RoundResult) :-
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
     not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 0,
     selectTile(Board, HumanHand, SkipLastTurn, SelectedTile, Direction),
@@ -230,10 +433,10 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     increaseAmountOfSkips(SkipLastTurn, AmountOfSkips, NewAmountOfSkips),
     drawBoard(NewBoard),
     printState(NewHumanHand, ComputerHand, NewStock),
-    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, RoundResult).
+    roundLoop(NewBoard, NewStock, NewHumanHand, ComputerHand, NewSkip, NewAmountOfSkips, 1, _, RoundResult).
 
 % Computer turn
-roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, RoundResult) :-
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
     not(endOfRoundConditionsMet(HumanHand, ComputerHand, AmountOfSkips)),
     NextPlayer = 1,
     computerPlay(Board, Stock, ComputerHand, SkipLastTurn, false, Ret),
@@ -241,10 +444,11 @@ roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, Ne
     increaseAmountOfSkips(NewSkip, AmountOfSkips, NewAmountOfSkips),
     drawBoard(NewBoard),
     printState(HumanHand, NewComputerHand, NewStock),
-    roundLoop(NewBoard, NewStock, HumanHand, NewComputerHand, NewSkip, NewAmountOfSkips, 0, RoundResult).
+    askForHelp(Help),
+    roundLoop(NewBoard, NewStock, HumanHand, NewComputerHand, NewSkip, NewAmountOfSkips, 0, Help, RoundResult).
 
 % Announce winners and put the winner score and winner player in RoundResult
-roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, RoundResult) :-
+roundLoop(Board, Stock, HumanHand, ComputerHand, SkipLastTurn, AmountOfSkips, NextPlayer, Help, RoundResult) :-
     determineWinner(HumanHand, ComputerHand, Stock, AmountOfSkips, Winner, PointsWon),
     RoundResult = [Winner, PointsWon].
 
@@ -365,14 +569,14 @@ increaseAmountOfSkips(SkipLastTurn, CurrentSkips, NewAmountOfSkips) :-
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-askForHelp(HelpMode) :-
+askForHelp(Help) :-
     write("Would you like help for your turn? (0 - no, 1 - yes): "),
-    read(HelpMode),
-    validateHelpMode(HelpMode).
+    read(Help),
+    validateHelpMode(Help).
 
-askForHelp(HelpMode) :-
+askForHelp(Help) :-
     write("Invalid help input! Try again!"), nl,
-    askForHelp(HelpMode).
+    askForHelp(Help).
 
 
 %**************************************************************
@@ -385,8 +589,11 @@ askForHelp(HelpMode) :-
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-validateHelpMode(0).
-validateHelpMode(1).
+validateHelpMode(Help) :-
+    Help = 1.
+
+validateHelpMode(Help) :- 
+    Help = 0.
 
 
 
@@ -462,9 +669,7 @@ selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
     containsTile(SelectedTile, Hand),
     anyAvailableTiles(Hand, Board, AvailableTiles),
     containsTile(SelectedTile, AvailableTiles),
-    write("Please select a direction to play (0=Left, 1=Right): "),
-    read(Direction),
-    validateDirection(Direction).
+    getDirection(Board, SelectedTile, SkipLastTurn, Direction).
 
 selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
     SkipLastTurn = false,
@@ -475,7 +680,7 @@ selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
     containsTile(SelectedTile, Hand),
     humanAvailableTiles(Hand, Board, AvailableTiles),
     containsTile(SelectedTile, AvailableTiles),
-    getDirectionAccordingToInput(SelectedTile, Direction).
+    getDirection(Board, SelectedTile, SkipLastTurn, Direction).
 
 selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
     nl, write("Wrong tile! Please, try again! "), nl,
@@ -483,30 +688,31 @@ selectTile(Board, Hand, SkipLastTurn, SelectedTile, Direction) :-
 
 
 %**************************************************************
-%Function Name: getDirectionAccordingToInput
+%Function Name: getDirection
 %Purpose: To get the desired deriction to play a double tile
 %Parameters:
-%   SelectedTile         - the selected tile to play
+%   Board        - current longana board
+%   Tile         - the tile to be played
+%   Skip         - whether last turn was skipped or not
 %Return Value: 0 for left and 1 for right direction
 %Local Variables: None
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-getDirectionAccordingToInput(SelectedTile, Direction) :-
-    not(isDoubleTile(SelectedTile)),
+getDirection(Board, Tile, Skip, Direction) :-
+    Skip = false,
+    not(isDoubleTile(Tile)),
     Direction = 0.
 
-getDirectionAccordingToInput(SelectedTile, Direction) :-
-    isDoubleTile(SelectedTile),
+getDirection(Board, Tile, Skip, Direction) :-
     write("Please select a direction to play (0=Left, 1=Right): "),
-    read(Direction),
-    validateDirection(Direction).
+    read(Dir),
+    validateDirection(Board, Tile, Skip, Dir),
+    Direction = Dir.
 
-getDirectionAccordingToInput(SelectedTile, Direction) :-
-    isDoubleTile(SelectedTile),
-    write("Wrong input! Please try again!"), nl,
-    getDirectionAccordingToInput(SelectedTile, Direction).
-
+getDirection(Board, Tile, Skip, Direction) :-
+    write("Wrong direction! Please try again!"), nl,
+    getDirection(Board, Tile, Skip, Direction).
 
 
 %**************************************************************
@@ -514,13 +720,19 @@ getDirectionAccordingToInput(SelectedTile, Direction) :-
 %Purpose: To validate that the user did not input garbage value for direction
 %Parameters:
 %   Direction    - 0 for left, 1 for right
-%Return Value: true if Direction is 0 or 1, false otherwise
+%Return Value: true if Direction is valid, false otherwise
 %Local Variables: None
 %Algorithm: None
 %Assistance Received: None 
 %**************************************************************
-validateDirection(0).
-validateDirection(1).
+validateDirection(Board, Tile, Skip, Dir) :-
+    Dir = 0,
+    canPlayLeft(Tile, Board, _).
+
+validateDirection(Board, Tile, Skip, Dir) :-
+    Dir = 1,
+    canPlayRight(Tile, Board, _).
+
 
 
 %**************************************************************
